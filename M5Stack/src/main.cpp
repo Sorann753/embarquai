@@ -5,7 +5,7 @@
  * @version 0.1
  */
 
-#include <Arduino.h>
+#include <M5Core2.h>
 
 
 

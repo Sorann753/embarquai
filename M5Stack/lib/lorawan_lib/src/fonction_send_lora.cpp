@@ -5,20 +5,20 @@
 * @param struct donnee structure ui contiendra les différents champs qui contiendront les données des capteurs
 * @return void 
 */
-void Send_Message_Lorawan(const data_bateau& data)
+void lora::Send_Message_Lorawan(const data_bateau& data)
 {
     // Initialisation de Serial 2
-    init_serial_2();
+    //init();
 
     String message{""};
     String Borne{""}; 
     String key = "10101"; // Choisir cle en binaire
 
     // Concatenation des differentes valeurs du capteurs
-    Borne += "b'&"; // Debut message(obligatoire pour l envoie)
-    // message += data.param1 + "/";
-    // message += data.param2 + "/";
-    // message += data.param3 + "/";
+     Borne += "b'&"; // Debut message(obligatoire pour l envoie)
+     message += data.data + "/";
+     message += data.data_1 + "/";
+     message += data.data_2 + "/";
     // message += data.param4 + "/";
     // message += data.param5 + "/";
     // message += data.param6 + "/";
@@ -31,7 +31,7 @@ void Send_Message_Lorawan(const data_bateau& data)
 
     //Concatener le crc à la fin du message
     Borne += message;
-    Borne += crc_bin + "&'"; // Fin message
+    Borne += "/" + crc_bin + "&'"; // Fin message
     
     Serial2.println(Borne); // Trame message -> Serial2.println("b'&Loris;Loris&'");
     delay(2000);
@@ -42,7 +42,7 @@ void Send_Message_Lorawan(const data_bateau& data)
 * @param none
 * @return void
 */
-void init_serial_2()
+void lora::init()
 {
     Serial2.begin(19200, SERIAL_8N1, 13, 14);//RX13 et tx14
     Serial2.flush();
@@ -53,7 +53,7 @@ void init_serial_2()
  * @brief Conversion d'une chaine de caractère en binaire 
  * @return std::string 
  */
-String conversion_binaire(const String& data)
+String lora::conversion_binaire(const String& data)
 {
     int N = data.length();
     String bin = "";
@@ -83,7 +83,7 @@ String conversion_binaire(const String& data)
  * @param data 
  * @return std::string 
  */
-String generation_CRC(const String& data, const String& key)
+String lora::generation_CRC(const String& data, const String& key)
 {
     int l_key = key.length();
 
@@ -101,7 +101,7 @@ String generation_CRC(const String& data, const String& key)
  * @param b 
  * @return std::string 
  */
-String xor1(const String& a, const String& b)
+String lora::xor1(const String& a, const String& b)
 {
     // Initialise le resultat
 	String result = "";
@@ -125,7 +125,7 @@ String xor1(const String& a, const String& b)
  * @param divident 
  * @param divisor 
  */
-String mod2div(const String& divident, const String& divisor)
+String lora::mod2div(const String& divident, const String& divisor)
 {
     // Nombre de bits à XORer à la fois.
 	int pick = divisor.length();

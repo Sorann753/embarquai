@@ -13,7 +13,6 @@
 #define ESP32_CAN_RX_PIN GPIO_NUM_36
 
 #include <M5Core2.h>
-#include <NMEA2000_CAN.h>  // This will automatically choose right CAN library and create suitable NMEA2000 object
 #include <N2kMsg.h>
 #include <NMEA2000.h>
 #include <N2kMessages.h>
@@ -32,18 +31,26 @@ namespace navi{
     PGN : 129026 -> data GPS (direction + speed)
     */
 
+    template<typename T1, typename T2>
+    struct pair{
+        
+        T1 first;
+        T2 second;
+    };
+
     /* @brief fr */
-    class Navi{
+    class c_Navi{
 
     public:
 
-        Navi() = default;
-        ~Navi() = default;
+        c_Navi() = default;
+        ~c_Navi() = default;
         
-        Navi(Navi&&) = delete;
-        Navi(const Navi&) = delete;
-        Navi& operator=(Navi&&) = delete;
-        Navi& operator=(const Navi&) = delete;
+        //on empêche la copie ou le move de cette classe
+        c_Navi(c_Navi&&) = delete;
+        c_Navi(const c_Navi&) = delete;
+        c_Navi& operator=(c_Navi&&) = delete;
+        c_Navi& operator=(const c_Navi&) = delete;
 
         void begin();
         bool handle(const tN2kMsg &N2kMsg);
@@ -51,20 +58,17 @@ namespace navi{
 
     private:
 
-        void handleHeading(const tN2kMsg& N2kMsg) const noexcept; // 127250L
-        void handleRateOfTurn(const tN2kMsg& N2kMsg) const noexcept; // 127251L
-        void handlePosition(const tN2kMsg& N2kMsg) const noexcept; // 129025L
-        void handleCogSog(const tN2kMsg& N2kMsg) const noexcept; // 129026L
-        void handleWind(const tN2kMsg& N2kMsg) const noexcept; // 130306L
-    } Navi;
 
 
+        //fonctions privés
+        static void handleHeading(const tN2kMsg& N2kMsg) noexcept; // 127250L
+        static void handleRateOfTurn(const tN2kMsg& N2kMsg) noexcept; // 127251L
+        static void handlePosition(const tN2kMsg& N2kMsg) noexcept; // 129025L
+        static void handleCogSog(const tN2kMsg& N2kMsg) noexcept; // 129026L
+        static void handleWind(const tN2kMsg& N2kMsg) noexcept; // 130306L
+    };
 
-    //NMEA 2000 message handler
-    void HandleNMEA2000Msg(const tN2kMsg &N2kMsg) {
-
-        Navi.handle(N2kMsg);
-    }
+    extern c_Navi Navi;
 }
 
 using navi::Navi;

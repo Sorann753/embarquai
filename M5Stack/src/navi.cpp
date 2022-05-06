@@ -6,6 +6,7 @@
  */
 
 #include "navi.hpp"
+#include <NMEA2000_CAN.h>  // This will automatically choose right CAN library and create suitable NMEA2000 object
 
 namespace navi{
 
@@ -14,7 +15,7 @@ namespace navi{
     * @param 
     * @return 
     */
-    void Navi::handleHeading(const tN2kMsg& N2kMsg) const noexcept{
+    void c_Navi::handleHeading(const tN2kMsg& N2kMsg) noexcept{
     
         unsigned char messageIdentifier; // == SID
         double heading = 0;
@@ -68,7 +69,7 @@ namespace navi{
     * @param 
     * @return 
     */
-    void Navi::handleRateOfTurn(const tN2kMsg& N2kMsg) const noexcept{
+    void c_Navi::handleRateOfTurn(const tN2kMsg& N2kMsg) noexcept{
     
         unsigned char messageIdentifier; // == SID
         double RateOfTurn = 0;
@@ -89,7 +90,7 @@ namespace navi{
     * @param 
     * @return 
     */
-    void Navi::handlePosition(const tN2kMsg& N2kMsg) const noexcept{
+    void c_Navi::handlePosition(const tN2kMsg& N2kMsg) noexcept{
     
         double latitude = 0;
         double longitude = 0;
@@ -113,7 +114,7 @@ namespace navi{
     * @param 
     * @return 
     */
-    void Navi::handleCogSog(const tN2kMsg& N2kMsg) const noexcept{
+    void c_Navi::handleCogSog(const tN2kMsg& N2kMsg) noexcept{
     
         unsigned char messageIdentifier; // == SID
         tN2kHeadingReference headingType;
@@ -154,7 +155,7 @@ namespace navi{
     * @param 
     * @return 
     */
-    void Navi::handleWind(const tN2kMsg& N2kMsg) const noexcept{
+    void c_Navi::handleWind(const tN2kMsg& N2kMsg) noexcept{
     
         unsigned char messageIdentifier; // == SID
         double WindSpeed = 0;
@@ -179,11 +180,23 @@ namespace navi{
 
 
     /**
+     * @brief
+     * @param
+     * @return
+     */
+    void HandleNMEA2000Msg(const tN2kMsg &N2kMsg) {
+
+        Navi.handle(N2kMsg);
+    }
+
+
+
+    /**
     * @brief 
     * @param 
     * @return 
     */
-    void Navi::begin(){
+    void c_Navi::begin(){
     
         // Do not forward bus messages at all
         NMEA2000.EnableForward(false);
@@ -203,7 +216,7 @@ namespace navi{
     * @param 
     * @return 
     */
-    void Navi::get_nmea_data(){
+    void c_Navi::get_nmea_data(){
 
         NMEA2000.ParseMessages();
     }
@@ -215,40 +228,54 @@ namespace navi{
     * @param 
     * @return 
     */
-    bool Navi::handle(const tN2kMsg &N2kMsg){
+    bool c_Navi::handle(const tN2kMsg &NmeaMessage){
     
-        static constexpr long PGN_list[] {
-            127250L,
-            127251L,
-            129025L,
-            129026L,
-            130306L
+        static constexpr int NB_KNOW_PGN = 5;
+        static constexpr Handler_navi handler_list[NB_KNOW_PGN] {
+            {127250L, &handleHeading},
+            {127251L, &handleRateOfTurn},
+            {129025L, &handlePosition},
+            {129026L, &handleCogSog},
+            {130306L, &handleWind}
         };
 
-        if(false){
-            Serial.print("Unknown message from : ");
-            Serial.println((int)N2kMsg.Source);
+        for(int i = 0; i < NB_KNOW_PGN; i++){
 
-            Serial.print("PGN : ");
-            Serial.println(N2kMsg.PGN);
+            if(NmeaMessage.PGN == handler_list[i].PGN){ //fonction trouvé
 
-            Serial.print("destination : ");
-            Serial.println((int)N2kMsg.Destination);
-
-            Serial.print("priority : ");
-            Serial.println((int)N2kMsg.Priority);
-
-            Serial.print("nb bytes : ");
-            Serial.println(N2kMsg.DataLen);
-            
-            Serial.print("msg time : ");
-            Serial.println(N2kMsg.MsgTime);
-
-            Serial.println( (N2kMsg.IsValid())? "message is valid" : "message is invalid");
-            
-
-
-            Serial.println();
+                handler_list[i].handler(NmeaMessage);
+                
+                return true;
+            }
         }
+
+        //si on atteind ce code c'est que le PGN n'est pas dans la liste
+        Serial.print("Unknown message from : ");
+        Serial.println((int)NmeaMessage.Source);
+
+        Serial.print("PGN : ");
+        Serial.println(NmeaMessage.PGN);
+
+        Serial.print("destination : ");
+        Serial.println((int)NmeaMessage.Destination);
+
+        Serial.print("priority : ");
+        Serial.println((int)NmeaMessage.Priority);
+
+        Serial.print("nb bytes : ");
+        Serial.println(NmeaMessage.DataLen);
+        
+        Serial.print("msg time : ");
+        Serial.println(NmeaMessage.MsgTime);
+
+        Serial.println( (NmeaMessage.IsValid())? "message is valid" : "message is invalid");
+
+        Serial.println();
+
+
+        return false;
     }
+
+    //on construit un objet Navi pour pouvoir l'utilisé de manière globale
+    c_Navi Navi;
 }

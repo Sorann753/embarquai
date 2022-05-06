@@ -31,11 +31,10 @@ namespace navi{
     PGN : 129026 -> data GPS (direction + speed)
     */
 
-    template<typename T1, typename T2>
-    struct pair{
+    struct Handler_navi{
         
-        T1 first;
-        T2 second;
+        long PGN;
+        void (*handler)(const tN2kMsg&);
     };
 
     /* @brief fr */

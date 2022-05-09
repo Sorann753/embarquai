@@ -158,8 +158,7 @@ String lora::mod2div(const String& divident, const String& divisor)
             // partie utilisée à chaque étape) est 0, l'étape ne peut pas
             // utilise le diviseur normal ; nous devons utiliser un
             // diviseur composé uniquement de 0.
-			tmp = xor1(String(pick, '0'), tmp) +
-				divident[pick];
+			tmp = xor1(String(i, '0'), tmp) + divident[i];
 
 		// Incrémenter la sélection pour aller plus loin
 		i += 1;
@@ -171,7 +170,7 @@ String lora::mod2div(const String& divident, const String& divisor)
 	if (tmp[0] == '1')
 		tmp = xor1(divisor, tmp);
 	else
-		tmp = xor1(String(pick, '0'), tmp);
+		tmp = xor1(String(i, '0'), tmp);
 
 	return tmp;
 }

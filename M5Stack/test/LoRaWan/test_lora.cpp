@@ -6,6 +6,7 @@
  */
 
 #include <M5Core2.h>
+#include <unity.h>
 #include "fonction_send_lora.h"
 
 /**
@@ -16,7 +17,17 @@
 void setup() {
     M5.begin();
     Serial.begin(9600);
+
+    UNITY_BEGIN();
+    RUN_TEST([](){
+        TEST_ASSERT_EQUAL(lora::is_init, false); //test qui vérifie que is_init est bien initialisé a false
+    });
+
     lora::init();
+
+    RUN_TEST([](){
+        TEST_ASSERT_EQUAL(lora::is_init, true); //test qui vérifie que is_init passe bien a true après init()
+    });
 }
 
 
@@ -30,4 +41,7 @@ void loop() {
     lora::Send_Message_Lorawan(data);
     
     Serial.println("ok");
+    
+    delay(100);
+    UNITY_END(); // termine le test unitaire
 }

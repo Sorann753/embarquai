@@ -56,6 +56,8 @@ namespace lora{
      * @param divisor 
      */
     String mod2div(const String& divident, const String& divisor);
+
+    extern bool is_init;
 }
 
 #endif

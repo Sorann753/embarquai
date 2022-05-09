@@ -5,6 +5,10 @@
  * @version 0.2
  */
 
+//on précise a platformio qu'il ne faut pas compilé ce fichier quand on fait des test unitaires
+//si non sa provoque un bug de multiple definition de loop() et de setup()
+#ifndef UNIT_TEST
+
 #include <M5Core2.h>
 #include "navi.hpp"
 #include "fonction_send_lora.h"
@@ -32,3 +36,5 @@ void loop() {
     }
     loop_counter++;
 }
+
+#endif

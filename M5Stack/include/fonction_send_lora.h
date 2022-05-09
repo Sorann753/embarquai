@@ -22,6 +22,13 @@ namespace lora{
     void init();
 
     /**
+     * @brief Cette fonction permet d'ajouter des bits sur une chaine de caractère
+     * @param limite 
+     * @return String 
+     */
+    String add_bit(int limite);
+
+    /**
      * @brief Generation d'un string contenant le message combinant une clé pour donner une valeur d'identification en cas de perte de données 
      * @param key 
      * @param data 

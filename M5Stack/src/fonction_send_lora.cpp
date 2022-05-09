@@ -58,6 +58,20 @@ void lora::init()
 }
 
 /**
+ * @brief Cette fonction permet d'ajouter des bits sur une chaine de caractère
+ * 
+ * @param limite 
+ * @return String 
+ */
+String lora::add_bit(int limite)
+{
+    String variable = "";
+    for(auto i = 0; i < limite; i++){variable += '0';}
+
+    return variable;
+}
+
+/**
  * @brief Conversion d'une chaine de caractère en binaire 
  * @return String 
  */
@@ -96,8 +110,7 @@ String lora::generation_CRC(const String& data, const String& key)
     int l_key = key.length();
 
 	// Ajoute n-1 zéros à la fin des données
-	String appended_data = data;
-	for(auto i = 0; i < l_key - 1; i++){appended_data += '0';}
+	String appended_data = data + add_bit(l_key - 1);
 
 	String remainder = mod2div(appended_data, key);
     
@@ -159,7 +172,7 @@ String lora::mod2div(const String& divident, const String& divisor)
             // partie utilisée à chaque étape) est 0, l'étape ne peut pas
             // utilise le diviseur normal ; nous devons utiliser un
             // diviseur composé uniquement de 0.
-			tmp = xor1(String(i, '0'), tmp) + divident[i];
+			tmp = xor1(add_bit(i), tmp) + divident[i];
 
 		// Incrémenter la sélection pour aller plus loin
 		i += 1;
@@ -171,7 +184,7 @@ String lora::mod2div(const String& divident, const String& divisor)
 	if (tmp[0] == '1')
 		tmp = xor1(divisor, tmp);
 	else
-		tmp = xor1(String(i, '0'), tmp);
+		tmp = xor1(add_bit(i), tmp);
 
 	return tmp;
 }

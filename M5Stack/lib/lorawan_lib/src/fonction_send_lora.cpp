@@ -12,26 +12,28 @@ void lora::Send_Message_Lorawan(const data_bateau& data)
 
     String message{""};
     String Borne{""}; 
-    String key = "10101"; // Choisir cle en binaire
+    String key = "101010001"; // Choisir cle en binaire
 
     // Concatenation des differentes valeurs du capteurs
-     Borne += "b'&"; // Debut message(obligatoire pour l envoie)
-     message += data.data + "/";
-     message += data.data_1 + "/";
-     message += data.data_2 + "/";
+     Borne += "b'@"; // Debut message(obligatoire pour l envoie)
+     message += data.data + ";";
+     message += data.data_1 + ";";
+     message += data.data_2; // Ne pas mettre de caractere de separation pour la dernière data
     // message += data.param4 + "/";
     // message += data.param5 + "/";
     // message += data.param6 + "/";
     
     //Convertir le message en binaire
     String value_bin = conversion_binaire(message);
+    //Serial.println("lo");
+    //Serial.println(value_bin);
 
     //Generation CRC
     String crc_bin = generation_CRC(value_bin, key);
 
     //Concatener le crc à la fin du message
-    Borne += message;
-    Borne += "/" + crc_bin + "&'"; // Fin message
+    Borne += message + "!";
+    Borne += crc_bin + "~'"; // Fin message
     
     Serial2.println(Borne); // Trame message -> Serial2.println("b'&Loris;Loris&'");
     delay(2000);
@@ -88,7 +90,8 @@ String lora::generation_CRC(const String& data, const String& key)
     int l_key = key.length();
 
 	// Ajoute n-1 zéros à la fin des données
-	String appended_data = (data + String(l_key - 1, '0'));
+	String appended_data = data;
+	for(auto i = 0; i < l_key - 1; i++){appended_data += '0';}
 
 	String remainder = mod2div(appended_data, key);
     

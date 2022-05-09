@@ -26,7 +26,7 @@ void setup() {
  * @return none
  */
 void loop() {
-    lora::data_bateau data;
+    navi::data_navi data;
     lora::Send_Message_Lorawan(data);
     
     Serial.println("ok");

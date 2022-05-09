@@ -59,7 +59,7 @@ void lora::init()
 
 /**
  * @brief Conversion d'une chaine de caractère en binaire 
- * @return std::string 
+ * @return String 
  */
 String lora::conversion_binaire(const String& data)
 {
@@ -89,7 +89,7 @@ String lora::conversion_binaire(const String& data)
  * @brief Generation d'un string contenant le message combinant une clé pour donner une valeur d'identification en cas de perte de données 
  * @param key 
  * @param data 
- * @return std::string 
+ * @return String 
  */
 String lora::generation_CRC(const String& data, const String& key)
 {
@@ -104,10 +104,10 @@ String lora::generation_CRC(const String& data, const String& key)
 }
 
 /**
- * @brief Fonction qui va faire un xor(ou exclusif) entre deux chaine de carectere
+ * @brief Fonction qui va faire un xor(ou exclusif) entre deux String
  * @param a 
  * @param b 
- * @return std::string 
+ * @return String 
  */
 String lora::xor1(const String& a, const String& b)
 {
@@ -136,21 +136,21 @@ String lora::xor1(const String& a, const String& b)
 String lora::mod2div(const String& divident, const String& divisor)
 {
     // Nombre de bits à XORer à la fois.
-	int pick = divisor.length();
+	int i = divisor.length();
 
 	// Découpage du diviseur pour s'approprier
     // longueur pour une étape particulière
-	String tmp = divident.substring(0, pick);
+	String tmp = divident.substring(0, i);
 
-	int n = divident.length();
+	int length = divident.length();
 
-	while (pick < n)
+	while (i < length)
 	{
 		if (tmp[0] == '1')
 
 			// Remplace le diviseur par le résultat
             // de XOR et tirez 1 bit vers le bas
-			tmp = xor1(divisor, tmp) + divident[pick];
+			tmp = xor1(divisor, tmp) + divident[i];
 		else
 
 			// Si le bit le plus à gauche est '0'.
@@ -162,11 +162,11 @@ String lora::mod2div(const String& divident, const String& divisor)
 				divident[pick];
 
 		// Incrémenter la sélection pour aller plus loin
-		pick += 1;
+		i += 1;
 	}
 
 	// Pour les n derniers bits, il faut l'exécuter
-    // normalement, car l'augmentation de la valeur de pick entraînera
+    // normalement, car l'augmentation de la valeur de i entraînera
     // Index hors limites.
 	if (tmp[0] == '1')
 		tmp = xor1(divisor, tmp);

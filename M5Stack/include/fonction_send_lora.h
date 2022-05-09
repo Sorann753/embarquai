@@ -25,13 +25,13 @@ namespace lora{
      * @brief Generation d'un string contenant le message combinant une clé pour donner une valeur d'identification en cas de perte de données 
      * @param key 
      * @param data 
-     * @return std::string 
+     * @return String 
      */
     String generation_CRC(const String& data, const String& key);
 
     /**
      * @brief Conversion d'une chaine de caractère en binaire 
-     * @return std::string 
+     * @return String 
      */
     String conversion_binaire(const String& data);
 
@@ -39,7 +39,7 @@ namespace lora{
      * @brief Fonction qui va faire un xor(ou exclusif) entre deux chaine de carectere
      * @param a 
      * @param b 
-     * @return std::string 
+     * @return String 
      */
     String xor1(const String& a, const String& b);
 

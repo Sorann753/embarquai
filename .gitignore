@@ -2,3 +2,5 @@ schema/*.mdj
 M5Stack/.pio
 M5Stack/.vscode
 image_projet/
+*.sql*
+*.db

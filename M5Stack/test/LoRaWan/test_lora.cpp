@@ -8,6 +8,7 @@
 #include <M5Core2.h>
 #include <unity.h>
 #include "fonction_send_lora.h"
+#include "fonction_gener_value.h"
 
 /**
  * @brief fonction d'initialisation du programme

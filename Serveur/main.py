@@ -3,9 +3,13 @@ import paho.mqtt.client as mqtt
 import re
 import base64
 import sqlite3
+import configparser
 from time import sleep, perf_counter
 from threading import Thread
 
+global ip
+global port
+global nom_bdd
 # Fonction pour ajouter données dans une BDD
 def Ajout_Base_Donnee(list_data, Nom_bdd, Nom_table):
 
@@ -44,22 +48,20 @@ def Ajout_Base_Donnee(list_data, Nom_bdd, Nom_table):
         connection.close()
         Activ_6 = True
         print(f'ok_6')
-        """
-    except Activ_1 is False:
-        print(f'Impossible de se connecter à la base de donnée, nom : {Name_Base_donnee}')
-    except Activ_2 is False:
-        print(f'Impossible de cree un curseur pour interagir sur la base de donnée, nom : {Name_Base_donnee}')
-    except Activ_3 is False:
-        print(f'Impossible d exécuter la commande : {Name_commande} sur la base de donnée, nom : {Name_Base_donnee}')
-    except Activ_4 is False:
-        print(f'Impossible de fermer le curseur sur la base de donnée, nom : {Name_Base_donnee}')
-    except Activ_5 is False:
-        print(f'Impossible de commit sur la base de donnée, nom : {Name_Base_donnee}')
-    except Activ_6 is False:
-        print(f'Impossible de fermer la connection sur la base de donnée, nom : {Name_Base_donnee}')"""
     except Exception as e:
         print(str(e))
-
+        if Activ_1 is False:
+            print(f'Impossible de se connecter à la base de donnée, nom : {Name_Base_donnee}')
+        elif Activ_2 is False:
+            print(f'Impossible de cree un curseur pour interagir sur la base de donnée, nom : {Name_Base_donnee}')
+        elif Activ_3 is False:
+            print(f'Impossible d exécuter la commande : {Name_commande} sur la base de donnée, nom : {Name_Base_donnee}')
+        elif Activ_4 is False:
+            print(f'Impossible de fermer le curseur sur la base de donnée, nom : {Name_Base_donnee}')
+        elif Activ_5 is False:
+            print(f'Impossible de commit sur la base de donnée, nom : {Name_Base_donnee}')
+        elif Activ_6 is False:
+            print(f'Impossible de fermer la connection sur la base de donnée, nom : {Name_Base_donnee}')
     else:
         print(f'Operations effectuées correctement sur la base de donnée, nom : {Name_Base_donnee}')
 
@@ -191,10 +193,31 @@ def on_message(client, userdata, msg):
         else:
             print(f'Données lisible mais corrompu(crc invalide)...!')
 
+def recuperer_parametres():
+    config = configparser.ConfigParser()
+    config.sections()
+
+    config.read('param.ini')
+
+    # Rentrer paramètre réseau (ip et port)
+    param_reseau = config['RESEAU']
+    param_reseau.get('ip')
+
+
+def reception_trame():
+    client.on_connect = on_connect
+
+def reception_message():
+    client.on_message = on_message
+
 # Création d'un client MQTT et attachement des fonctions de callback
 client = mqtt.Client()
-client.on_connect = on_connect
-client.on_message = on_message
+
+t1 = Thread(target=reception_trame)
+t2 = Thread(target=reception_message)
+
+t1.start()
+t2.start()
 
 # Connexion au broker
 client.connect("192.168.1.156", 1883, 60) # add de mon pc ou est le serveur mosquitto qui recoit les paquets lora

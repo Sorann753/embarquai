@@ -38,11 +38,13 @@ void setup() {
  * @return none
  */
 void loop() {
+    static int compteur = 0;
     navi::data_navi data;
     lora::Send_Message_Lorawan(data);
     
     Serial.println("ok");
-    
     delay(100);
-    UNITY_END(); // termine le test unitaire
+    compteur++;
+
+    if(compteur > 10000){UNITY_END();}; // termine le test unitaire}
 }

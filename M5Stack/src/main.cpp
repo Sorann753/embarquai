@@ -31,7 +31,7 @@ void loop() {
     Navi.get_nmea_data();
 
     //affiche un . de temps en temps pour être sure que le M5stack fonctionne bien
-    if(loop_counter % 5000000 == 0){
+    if(loop_counter % 500000 == 0){
         Serial.println(".");
     }
     loop_counter++;

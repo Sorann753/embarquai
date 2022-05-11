@@ -21,22 +21,6 @@
 
 namespace navi{
 
-    /*
-    KNOWN PGN LIST : 
-    PGN : 60928  -> ISO Address Claim
-    PGN : 130306 -> wind data
-    PGN : 127251 -> rate of turn
-    PGN : 127250 -> magnetic heading
-    PGN : 129025 -> position GPS
-    PGN : 129026 -> data GPS (direction + speed)
-    */
-
-    struct Handler_navi{
-        
-        long PGN;
-        void (*handler)(const tN2kMsg&);
-    };
-
     /* @brief fr */
     class c_Navi{
 
@@ -52,7 +36,7 @@ namespace navi{
         c_Navi& operator=(const c_Navi&) = delete;
 
         void begin();
-        bool handle(const tN2kMsg &N2kMsg);
+        void handle(const tN2kMsg &N2kMsg);
         void get_nmea_data();
 
     private:
@@ -60,11 +44,10 @@ namespace navi{
 
 
         //fonctions privés
-        static void handleHeading(const tN2kMsg& N2kMsg) noexcept; // 127250L
-        static void handleRateOfTurn(const tN2kMsg& N2kMsg) noexcept; // 127251L
-        static void handlePosition(const tN2kMsg& N2kMsg) noexcept; // 129025L
-        static void handleCogSog(const tN2kMsg& N2kMsg) noexcept; // 129026L
-        static void handleWind(const tN2kMsg& N2kMsg) noexcept; // 130306L
+        void handleHeading(const tN2kMsg& N2kMsg) noexcept; // 127250L
+        void handlePosition(const tN2kMsg& N2kMsg) noexcept; // 129025L
+        void handleCogSog(const tN2kMsg& N2kMsg) noexcept; // 129026L
+        void handleWind(const tN2kMsg& N2kMsg) noexcept; // 130306L
     };
 
     extern c_Navi Navi;

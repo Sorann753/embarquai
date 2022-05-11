@@ -10,6 +10,8 @@
 
 namespace navi{
 
+    bool started = false;
+
     /**
     * @brief 
     * @param 
@@ -57,27 +59,6 @@ namespace navi{
             Serial.print(variation);
             Serial.print(" radians");
             Serial.println();
-
-            Serial.println();
-        }
-    }
-
-
-
-    /**
-    * @brief 
-    * @param 
-    * @return 
-    */
-    void c_Navi::handleRateOfTurn(const tN2kMsg& N2kMsg) noexcept{
-    
-        unsigned char messageIdentifier; // == SID
-        double RateOfTurn = 0;
-
-        if(ParseN2kRateOfTurn(N2kMsg, messageIdentifier, RateOfTurn) ){
-
-            Serial.print("Rate of turn : ");
-            Serial.println(RateOfTurn);
 
             Serial.println();
         }
@@ -180,27 +161,20 @@ namespace navi{
 
 
     /**
-     * @brief
-     * @param
-     * @return
-     */
-    void HandleNMEA2000Msg(const tN2kMsg &N2kMsg) {
-
-        Navi.handle(N2kMsg);
-    }
-
-
-
-    /**
     * @brief 
     * @param 
     * @return 
     */
     void c_Navi::begin(){
     
+        //s'assure qu'on n'ai pas déjà appelé begin
+        if(started) return;
+
         // Do not forward bus messages at all
         NMEA2000.EnableForward(false);
-        NMEA2000.SetMsgHandler(HandleNMEA2000Msg);
+        NMEA2000.SetMsgHandler([](const tN2kMsg &N2kMsg){
+            Navi.handle(N2kMsg);
+        });
 
         Serial.println();
         while(!NMEA2000.Open()){
@@ -208,6 +182,8 @@ namespace navi{
             delay(1000);
         }
         Serial.println("CAN OPEN");
+
+        started = true;
     }
 
 
@@ -217,6 +193,8 @@ namespace navi{
     * @return 
     */
     void c_Navi::get_nmea_data(){
+
+        if(!started) return;
 
         NMEA2000.ParseMessages();
     }
@@ -228,52 +206,61 @@ namespace navi{
     * @param 
     * @return 
     */
-    bool c_Navi::handle(const tN2kMsg &NmeaMessage){
+    void c_Navi::handle(const tN2kMsg &NmeaMessage){
     
-        static constexpr int NB_KNOW_PGN = 5;
-        static constexpr Handler_navi handler_list[NB_KNOW_PGN] {
-            {127250L, &handleHeading},
-            {127251L, &handleRateOfTurn},
-            {129025L, &handlePosition},
-            {129026L, &handleCogSog},
-            {130306L, &handleWind}
-        };
+        /*
+        KNOWN PGN LIST : 
+        PGN : 60928  -> ISO Address Claim (unused)
+        PGN : 127250 -> magnetic heading
+        PGN : 127251 -> rate of turn (unused)
+        PGN : 129025 -> position GPS
+        PGN : 129026 -> data GPS (direction + speed)
+        PGN : 130306 -> wind data
+        */
 
-        for(int i = 0; i < NB_KNOW_PGN; i++){
+        switch(NmeaMessage.PGN){
 
-            if(NmeaMessage.PGN == handler_list[i].PGN){ //fonction trouvé
+            case 127250L:
+                this->handleHeading(NmeaMessage);
+            break;
 
-                handler_list[i].handler(NmeaMessage);
+            case 129025L:
+                this->handlePosition(NmeaMessage);
+            break;
+
+            case 129026L:
+                this->handleCogSog(NmeaMessage);
+            break;
+
+            case 130306L:
+                this->handleWind(NmeaMessage);
+            break;
+
+            default: //si le PGN n'est pas connu
+
+                Serial.print("Unknown message from : ");
+                Serial.println((int)NmeaMessage.Source);
+
+                Serial.print("PGN : ");
+                Serial.println(NmeaMessage.PGN);
+
+                Serial.print("destination : ");
+                Serial.println((int)NmeaMessage.Destination);
+
+                Serial.print("priority : ");
+                Serial.println((int)NmeaMessage.Priority);
+
+                Serial.print("nb bytes : ");
+                Serial.println(NmeaMessage.DataLen);
                 
-                return true;
-            }
+                Serial.print("msg time : ");
+                Serial.println(NmeaMessage.MsgTime);
+
+                Serial.println( (NmeaMessage.IsValid())? "message is valid" : "message is invalid");
+
+                Serial.println();
+            break;
         }
-
-        //si on atteind ce code c'est que le PGN n'est pas dans la liste
-        Serial.print("Unknown message from : ");
-        Serial.println((int)NmeaMessage.Source);
-
-        Serial.print("PGN : ");
-        Serial.println(NmeaMessage.PGN);
-
-        Serial.print("destination : ");
-        Serial.println((int)NmeaMessage.Destination);
-
-        Serial.print("priority : ");
-        Serial.println((int)NmeaMessage.Priority);
-
-        Serial.print("nb bytes : ");
-        Serial.println(NmeaMessage.DataLen);
-        
-        Serial.print("msg time : ");
-        Serial.println(NmeaMessage.MsgTime);
-
-        Serial.println( (NmeaMessage.IsValid())? "message is valid" : "message is invalid");
-
-        Serial.println();
-
-
-        return false;
     }
 
     //on construit un objet Navi pour pouvoir l'utilisé de manière globale

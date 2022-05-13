@@ -21,7 +21,9 @@
 
 namespace navi{
 
-    /* @brief fr */
+    /**
+     *  @brief classe qui gère la communication avec le matériel NMEA2000
+     */
     class c_Navi{
 
     public:

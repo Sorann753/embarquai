@@ -46,5 +46,5 @@ void loop() {
     delay(100);
     compteur++;
 
-    if(compteur > 10000){UNITY_END();}; // termine le test unitaire}
+    if(compteur > 10000){UNITY_END();} // termine le test unitaire}
 }

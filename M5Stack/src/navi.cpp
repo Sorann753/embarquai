@@ -71,6 +71,70 @@ namespace navi{
     * @param 
     * @return 
     */
+    void c_Navi::handleBoatSpeed(const tN2kMsg& N2kMsg) noexcept{
+
+        constexpr double NoGroundSpeedValue = -1000000000.00;
+        unsigned char SID = 0;
+        double speed_to_water = 0;
+        double speed_to_ground = 0;
+        tN2kSpeedWaterReferenceType sensorType{};
+        if(ParseN2kBoatSpeed(N2kMsg, SID, speed_to_water, speed_to_ground, sensorType)){
+
+            Serial.print("speed to water : ");
+            Serial.println(speed_to_water);
+
+            if(speed_to_ground != NoGroundSpeedValue){ //si la vitesse par rapport au sol est connue
+                Serial.print("speed to ground : ");
+                Serial.println(speed_to_ground);
+            }
+
+            Serial.print("type de capteur : ");
+            switch(sensorType){
+
+                case N2kSWRT_Paddle_wheel:
+                    Serial.println("N2kSWRT_Paddle_wheel");
+                break;
+
+                case N2kSWRT_Pitot_tube:
+                    Serial.println("N2kSWRT_Pitot_tube");
+                break;
+
+                case N2kSWRT_Doppler_log:
+                    Serial.println("N2kSWRT_Doppler_log");
+                break;
+
+                case N2kSWRT_Ultra_Sound:
+                    Serial.println("N2kSWRT_Ultra_Sound");
+                break;
+
+                case N2kSWRT_Electro_magnetic:
+                    Serial.println("N2kSWRT_Electro_magnetic");
+                break;
+
+                case N2kSWRT_Error:
+                    Serial.println("N2kSWRT_Error");
+                break;
+
+                case N2kSWRT_Unavailable:
+                    Serial.println("N2kSWRT_Unavailable");
+                break;
+
+                default:
+                    Serial.println("???");
+                break;
+            }
+
+            Serial.println();
+        }
+    }
+
+
+
+    /**
+    * @brief 
+    * @param 
+    * @return 
+    */
     void c_Navi::handlePosition(const tN2kMsg& N2kMsg) noexcept{
     
         double latitude = 0;
@@ -181,10 +245,11 @@ namespace navi{
             Serial.println("CAN ERROR : can't Open");
             delay(1000);
         }
-        Serial.println("CAN OPEN");
+        Serial.println("CAN OPEN : NAVI STARTED");
 
         started = true;
     }
+
 
 
     /**
@@ -213,15 +278,22 @@ namespace navi{
         PGN : 60928  -> ISO Address Claim (unused)
         PGN : 127250 -> magnetic heading
         PGN : 127251 -> rate of turn (unused)
+        PGN : 128259 -> boat speed (speed of the boat on the water)
+        PGN : 128267 -> water depth (unused)
         PGN : 129025 -> position GPS
-        PGN : 129026 -> data GPS (direction + speed)
+        PGN : 129026 -> COG SOG (speed combared to a fixed object on ground)
         PGN : 130306 -> wind data
+        PGN : 130311 -> temperatures (unused)
         */
 
         switch(NmeaMessage.PGN){
 
             case 127250L:
                 this->handleHeading(NmeaMessage);
+            break;
+
+            case 128259:
+                handleBoatSpeed(NmeaMessage);
             break;
 
             case 129025L:

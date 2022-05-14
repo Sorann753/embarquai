@@ -17,7 +17,7 @@
 
 void setup() {
 
-    M5.begin();
+    M5.begin(true, false);
     Serial.begin(115200);
 
     Navi.begin();

@@ -1,0 +1,8 @@
+2022-05-13 21:21:25,960 - DEBUG - |||||||||||||||||||Nouvelles valeurs de log ci dessous|||||||||||||||||||||||
+2022-05-13 21:21:48,346 - DEBUG - Argument valide!
+2022-05-13 21:21:48,347 - DEBUG - --------------Attention, apres s'etre connecte avec succes sur le serveur mosquitto, si il n'y a aucune nouvelles données arrivant sur le serveur Python:------------------
+-1/ Serveur mosquito déconnecte ou dysfonctionnelle
+-2/ Probleme reseau ou materiel au niveau du routeur et ou m5stack
+------------------------
+2022-05-13 21:21:53,360 - DEBUG - ------------Connexion impossible!------------
+Verifier les différents paramètres dans le fichier(param.ini)...

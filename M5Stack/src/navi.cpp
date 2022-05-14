@@ -21,8 +21,8 @@ namespace navi{
     
         unsigned char messageIdentifier; // == SID
         double heading = 0;
-        double deviation = 0;
-        double variation = 0;
+        double deviation = 0; //unused
+        double variation = 0; //unused
         tN2kHeadingReference headingType;
 
         if(ParseN2kHeading(N2kMsg, messageIdentifier, heading, deviation, variation, headingType) ){
@@ -41,7 +41,7 @@ namespace navi{
                 break;
 
                 case tN2kHeadingReference::N2khr_Unavailable :
-                    Serial.print("can't get heading type");
+                    Serial.print("heading type is unavailable");
                 break;
             }
 
@@ -73,7 +73,6 @@ namespace navi{
     */
     void c_Navi::handleBoatSpeed(const tN2kMsg& N2kMsg) noexcept{
 
-        constexpr double NoGroundSpeedValue = -1000000000.00;
         unsigned char SID = 0;
         double speed_to_water = 0;
         double speed_to_ground = 0;
@@ -83,7 +82,7 @@ namespace navi{
             Serial.print("speed to water : ");
             Serial.println(speed_to_water);
 
-            if(speed_to_ground != NoGroundSpeedValue){ //si la vitesse par rapport au sol est connue
+            if(!N2kIsNA(speed_to_ground)){ //si la vitesse par rapport au sol est connue
                 Serial.print("speed to ground : ");
                 Serial.println(speed_to_ground);
             }
@@ -163,8 +162,8 @@ namespace navi{
     
         unsigned char messageIdentifier; // == SID
         tN2kHeadingReference headingType;
-        double COG = 0; // Cource Over Ground
-        double SOG = 0; // Speed Over Ground
+        double COG = 0; // Cource Over Ground (peut remplacé le heading)
+        double SOG = 0; // Speed Over Ground (peut remplacé la speed_to_water)
         if(ParseN2kCOGSOGRapid(N2kMsg, messageIdentifier, headingType, COG, SOG) ){
 
             switch (headingType){
@@ -278,10 +277,10 @@ namespace navi{
         PGN : 60928  -> ISO Address Claim (unused)
         PGN : 127250 -> magnetic heading
         PGN : 127251 -> rate of turn (unused)
-        PGN : 128259 -> boat speed (speed of the boat on the water)
+        PGN : 128259 -> boat speed (vitesse du bateau sur l'eau)
         PGN : 128267 -> water depth (unused)
         PGN : 129025 -> position GPS
-        PGN : 129026 -> COG SOG (speed combared to a fixed object on ground)
+        PGN : 129026 -> COG SOG (vitesse et orientation calculé a partir des data GPS)
         PGN : 130306 -> wind data
         PGN : 130311 -> temperatures (unused)
         */

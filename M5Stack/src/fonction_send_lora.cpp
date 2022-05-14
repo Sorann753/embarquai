@@ -20,9 +20,9 @@ void lora::Send_Message_Lorawan(const navi::data_navi& data)
 
     // Concatenation des differentes valeurs du capteurs
      Borne += "b'@"; // Debut message(obligatoire pour l envoie)
-     message += data.data + ";";
-     message += data.data_1 + ";";
-     message += data.data_2; // Ne pas mettre de caractere de separation pour la dernière data
+    //  message += data.data + ";";
+    //  message += data.data_1 + ";";
+    //  message += data.data_2; // Ne pas mettre de caractere de separation pour la dernière data
     // message += data.param4 + "/";
     // message += data.param5 + "/";
     // message += data.param6 + "/";

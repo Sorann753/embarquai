@@ -47,6 +47,7 @@ namespace navi{
 
         //fonctions privés
         void handleHeading(const tN2kMsg& N2kMsg) noexcept; // 127250L
+        void handleBoatSpeed(const tN2kMsg& N2kMsg) noexcept; // 128259L
         void handlePosition(const tN2kMsg& N2kMsg) noexcept; // 129025L
         void handleCogSog(const tN2kMsg& N2kMsg) noexcept; // 129026L
         void handleWind(const tN2kMsg& N2kMsg) noexcept; // 130306L

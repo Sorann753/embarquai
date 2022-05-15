@@ -1,0 +1,24 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>Embarquai :: accueil</title>
+	
+</head>
+<body>
+
+<h1>Projet Embarquai</h1>
+<p>Bienvenue ! </p>
+<p>La carte est disponible via l'URL : <a href="{{ url_for('afficher_carte') }}">/carte</a></p>
+
+<p>Les endpoints de l'API sont :</p>
+<ul>
+	<li><a href="{{ url_for('recuperer_bateaux') }}">/bateaux</a></li>
+	<li><a href="{{ url_for('recuperer_positions') }}">/positions</a></li>
+</ul>
+
+</body>
+</html>

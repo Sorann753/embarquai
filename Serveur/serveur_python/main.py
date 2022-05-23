@@ -1,6 +1,6 @@
 # Librairies utilisées
 from socket import timeout, gaierror
-
+from threading import Thread
 import paho.mqtt.client as mqtt
 import re
 import base64
@@ -8,17 +8,16 @@ import sqlite3
 import configparser
 import sys
 import logging
-from time import sleep, perf_counter
-from threading import Thread
+import datetime
 
+# Variables globales
 ip = ""
 port = 0
 nom_bdd = ""
 chemin_fichier_conf = ""
-chemin_fichier_log = ""
-verif_message = False # test car pas use
-client = 0 # test car pas use
+list_data_bdd = [-1, -1, 0, 0, 0, 0, 0, 0, 0]
 
+# Fonction pour générerer fichier historique système
 def log_init():
     try:
         logging.basicConfig(level=logging.DEBUG,
@@ -45,7 +44,7 @@ def Ajout_Base_Donnee(list_data, Nom_bdd, Nom_table):
     # Preparation commande pour l'ajout de données
     Name_commande = "INSERT INTO"
     Name_table = Nom_table
-    sql = Name_commande + " " + Name_table + " (id_course, id_bateau, latitude, longitude, cap, vitesse, vitesse_vent, direction_vent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    sql = Name_commande + " " + Name_table + " (id_course, id_bateau, latitude, longitude, cap, vitesse, vitesse_vent, direction_vent, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     val = list_data
 
     # Connexion base de donnée et fermeture quand la commande a été effectué...
@@ -53,41 +52,41 @@ def Ajout_Base_Donnee(list_data, Nom_bdd, Nom_table):
     try:
         connection = sqlite3.connect(Name_Base_donnee)
         Activ_1 = True
-        print(f'ok_1')
         cursor = connection.cursor()
         Activ_2 = True
-        print(f'ok_2')
         cursor.execute(sql, val)
         Activ_3 = True
-        print(f'ok_3')
         cursor.close()
         Activ_4 = True
-        print(f'ok_4')
         connection.commit()
         Activ_5 = True
-        print(f'ok_5')
         connection.close()
         Activ_6 = True
-        print(f'ok_6')
     except Exception as e:
         print(str(e))
         if Activ_1 is False:
             print(f'Impossible de se connecter à la base de donnée, nom : {Name_Base_donnee}')
+            logging.debug(f'Impossible de se connecter à la base de donnée, nom : {Name_Base_donnee}')
         elif Activ_2 is False:
             print(f'Impossible de cree un curseur pour interagir sur la base de donnée, nom : {Name_Base_donnee}')
+            logging.debug(f'Impossible de cree un curseur pour interagir sur la base de donnée, nom : {Name_Base_donnee}')
         elif Activ_3 is False:
             print(f'Impossible d exécuter la commande : {Name_commande} sur la base de donnée, nom : {Name_Base_donnee}')
+            logging.debug(f'Impossible d exécuter la commande : {Name_commande} sur la base de donnée, nom : {Name_Base_donnee}')
         elif Activ_4 is False:
             print(f'Impossible de fermer le curseur sur la base de donnée, nom : {Name_Base_donnee}')
+            logging.debug(f'Impossible de fermer le curseur sur la base de donnée, nom : {Name_Base_donnee}')
         elif Activ_5 is False:
             print(f'Impossible de commit sur la base de donnée, nom : {Name_Base_donnee}')
+            logging.debug(f'Impossible de commit sur la base de donnée, nom : {Name_Base_donnee}')
         elif Activ_6 is False:
             print(f'Impossible de fermer la connection sur la base de donnée, nom : {Name_Base_donnee}')
+            logging.debug(f'Impossible de fermer la connection sur la base de donnée, nom : {Name_Base_donnee}')
     else:
         print(f'Operations effectuées correctement sur la base de donnée, nom : {Name_Base_donnee}')
+        logging.debug(f'Operations effectuées correctement sur la base de donnée, nom : {Name_Base_donnee}')
 
 # Fonction pour une transformation binaire
-#---------------------------------------
 def strToBinary(s):
     bin_conv = []
 
@@ -101,10 +100,9 @@ def strToBinary(s):
         bin_conv.append(binary_val[2:])
 
     return (' '.join(bin_conv))
-#---------------------------------------
 
 # Fonctions pour verifier le CRC
-#--------------------------------------------------------
+# Fonction pour effectuer un 'ou' exclusif(xor)
 def xor(a, b):
     # initialize result
     result = []
@@ -169,18 +167,68 @@ def encodeData(data, key):
     remainder = mod2div(appended_data, key)
 
     return remainder
-#----------------------------------------------------------------
 
 # Client python
 # Fonction de "callback" quand la connexion est établie
 def on_connect(client, userdata, flags, rc):
     print(f"Connexion réussies au broker (code={rc})")
+    logging.debug(f"Connexion réussies au broker (code={rc})")
 
     # Abonnement aux messages du topic "general"
+    """S'abonner à d'autres appareils:
+    lora/identifiant_lora_appareil/up,
+    Cet identifiant sera visible sur le serveur qui recoit les données"""
     #client.subscribe("lora/70-b3-d5-9b-a0-00-65-9e/up",) # Vrai donnees
     client.subscribe("lora/#") # donnees test
     #client.subscribe("lora/00-00-00-00-00-00-00-00/70-b3-d5-7e-d0-04-de-9e/up")
 
+# Traiter données avec la gestion du flag pour l'enregistrement dans une BDD
+def traitement_donnee(list):
+
+    # Liste qui contiendra les donnée à enregistrer dans la BDD
+    global list_data_bdd # id_course, id_bateau, latitude, longitude, cap, vitesse, vitesse_vent, direction_vent, date
+    list_data_bdd[0] = list[1] # id_course
+    list_data_bdd[1] = list[2] # id_bateau
+
+    # Récupération du flag
+    flag = list[0][::-1]
+
+    # Parcours du flag pour enregistrer données en conséquence...
+    # Principe de l'algorythme :
+    """Je prend la première valeur de ma liste 'list' contenant les données que j'ai recu,
+    puis je parcours mon flag et des que je tombe sur un '1', alors en connaissant l'ordre prédefinis de mon flag et l'ordre de mon tableau 'list_data_bdd',
+    je peux donc savoir par correspondance que la première valeur recu correspond à tel champs."""
+    compteur = 0
+    for key in list[3:len(list)]: # champs obligatoire : flag, id_course, id_bateau
+        for key_2 in flag[compteur:len(flag)]: # je commence à parcourir mon str à partir de 'l'itération + 1' ou je me suis arreter précédement...
+            if key_2 == "1":
+                if compteur == 0: # cap
+                    list_data_bdd[4] = key
+                    compteur += 1
+                    break
+                elif compteur == 1: # vitesse
+                    list_data_bdd[5] = key
+                    compteur += 1
+                    break
+                elif compteur == 2: # latitude
+                    list_data_bdd[2] = key
+                    compteur += 1
+                    break
+                elif compteur == 3: # longitude
+                    list_data_bdd[3] = key
+                    compteur += 1
+                    break
+                elif compteur == 4: # vitesse vent
+                    list_data_bdd[6] = key
+                    compteur += 1
+                    break
+                elif compteur == 5: # direction vent
+                    list_data_bdd[7] = key
+                    compteur += 1
+                    break
+            compteur += 1
+
+# Decrypter le message et le traiter
 def on_message_test(client, userdata, msg):
     categorie = msg.topic
     message = msg.payload.decode("utf8")
@@ -205,15 +253,30 @@ def on_message_test(client, userdata, msg):
         binary_data_Temp = strToBinary(found_2)  # Donnée avec espace entre chaque groupes de bits
         binary_data = binary_data_Temp.replace(" ", "")  # Espace supprimer entre chaque groupes de bits
         crc = encodeData(binary_data, "101010001")
-        print(f" crc = {crc}")
+        print(f"crc = {crc}")
         if crc == found_3:
             """Ajout BDD..."""
-            print(f'Données lisible et enregistre dans la base de donnee(crc valide)...!')
-            list_data = (1, 1, 10.0, 20.0, 15.0, 16.5, 17.5, 18.5)
-            Ajout_Base_Donnee(list_data, "bdd_embarquai.sqlite", "data_bateau")
+            print(f'Données lisible en cours d enregistrement dans la base de donnee(crc valide)...!')
+            logging.debug(f'Données lisible et enregistre dans la base de donnee(crc valide)...!')
+
+            # Séparation des données dans une liste pour le traitement
+            List_donnee_ = found_2.split(";")
+            List_donnee_.remove('') # Supprimer l'élément vide
+            traitement_donnee(List_donnee_)
+
+            # Liste qui contiendra les donnée à enregistrer dans la BDD
+            global list_data_bdd  # id_course, id_bateau, latitude, longitude, cap, vitesse, vitesse_vent, direction_vent, date
+
+            # Récupérer heure et date du moment
+            curent_time = datetime.datetime.now()
+            list_data_bdd[8] = curent_time
+
+            # Ajout bdd
+            Ajout_Base_Donnee(list_data_bdd, nom_bdd, "data_bateau") # data, nom bdd, nom table
+
         else:
             print(f'Données lisible mais corrompu(crc invalide)...!')
-
+            logging.debug(f'Données lisible mais corrompu(crc invalide)...!')
 
 # Fonction de "callback" quand un message est publié
 def on_message(client, userdata, msg):
@@ -224,8 +287,10 @@ def on_message(client, userdata, msg):
     string = message
     found = re.search('"data":"(.+?)"', string).group(1)
     print(f"base64 = {found}")
+    logging.debug(f"base64 = {found}")
     message_bytes = base64.b64decode(found)
     print(f"text = {message_bytes}")
+    logging.debug(f"text = {message_bytes}")
 
     # Verifier CRC pour verifier si data n'est pas corrompu
     message_bytes_str = str(message_bytes)
@@ -234,36 +299,42 @@ def on_message(client, userdata, msg):
         found_3 = re.search('!(.+?)~', message_bytes_str).group(1) # Récupération du CRC
     except:
         print(f'Données corrompu(illisible)!')
+        logging.debug(f'Données corrompu(illisible)!')
     else:
         print(f'Données lisible en attente de verification du crc!')
+        logging.debug(f'Données lisible en attente de verification du crc!')
         print(f'message = {found_2}')
+        logging.debug(f'message = {found_2}')
         binary_data_Temp = strToBinary(found_2) # Donnée avec espace entre chaque groupes de bits
         binary_data = binary_data_Temp.replace(" ","") # Espace supprimer entre chaque groupes de bits
         crc = encodeData(binary_data, "101010001")
         print(f" crc = {crc}")
+        logging.debug(f" crc = {crc}")
         if crc == found_3 :
             """Ajout BDD..."""
             print(f'Données lisible et enregistre dans la base de donnee(crc valide)...!')
+            logging.debug(f'Données lisible et enregistre dans la base de donnee(crc valide)...!')
             list_data = (1, 1, 10.0, 20.0, 15.0, 16.5, 17.5, 18.5)
             Ajout_Base_Donnee(list_data, "bdd_embarquai.sqlite", "data_bateau")
         else:
             print(f'Données lisible mais corrompu(crc invalide)...!')
+            logging.debug(f'Données lisible mais corrompu(crc invalide)...!')
 
 def recuperer_parametres(compteur = 1):
     global ip
     global port
     global nom_bdd
     global chemin_fichier_conf
-    read_file = []
 
     try:
         if compteur == 1 :
             print(f'Récuperation configuation personnalise...')
+            logging.debug(f'Récuperation configuation personnalise...')
             config = configparser.ConfigParser()
             config.sections()
 
             # lecture fichier
-            read_file = config.read(chemin_fichier_conf)
+            config.read(chemin_fichier_conf)
 
             # Rentrer paramètre réseau (ip et port)
             param_reseau = config['RESEAU']
@@ -275,43 +346,36 @@ def recuperer_parametres(compteur = 1):
             nom_bdd = param_bdd.get('nom_bdd')
         else:
             print(f'Récuperation configuation par default...')
-            config = configparser.ConfigParser()
-            config.sections()
+            logging.debug(f'Récuperation configuation par default...')
+            ip = "127.0.0.1"
+            port = 1883
+            nom_bdd = "bdd_embarquai.sqlite"
 
-            # lecture fichier
-            config.read(chemin_fichier_conf)
-
-            # Rentrer paramètre réseau (ip et port)
-            param_def = config['DEFAULT']
-            ip = param_def.get('ip')
-            port = param_def.get('port')
-            nom_bdd = param_def.get('nom_bdd')
-
-    except KeyError as name_file: # Si on ne peut plus acceder a une des section(reseau...),on tente le default
-        if compteur == 1:
-            print(f'Configuration personnalise invalide(voir fichier param.ini...)')
-            recuperer_parametres(compteur - 1) # Rappel fonction pour tester les parametres par defaults...
-        else:
-            sys.exit("Impossible d'acceder au fichier de configuration!")
-
-    except Exception as e: # Si les clés des champs sont vides alors on teste le default, si il n y a plus de champs, alors on prend ceux de defaults
+    except Exception as e: # Si les clés des champs sont vides alors on teste le default, si il n y a plus de champs, alors on prend ceux de defaults, si nom fichier incorrecte...
         print(f'erreur : {type(e).__name__}')
+        logging.debug(f'erreur : {type(e).__name__}')
         if compteur == 1:
             print(f'Configuration personnalise invalide(voir fichier param.ini...)')
+            logging.debug(f'Configuration personnalise invalide(voir fichier param.ini...)')
             recuperer_parametres(compteur - 1) # Rappel fonction pour tester les parametres par defaults...
         else:
+            logging.debug("Le fichier de configuration par default n'est pas dans les normes!\nVerifier le contenu du fichier...\nProgramme fermé...")
             sys.exit("Le fichier de configuration par default n'est pas dans les normes!\nVerifier le contenu du fichier...")
 
     else:
         if ip == "" or ip is None or port == 0 or port == '' or port is None or nom_bdd is None or nom_bdd == "": # Verifier si champs sont vide
-            print(f'Le champs ip et ou le port sont vide(s)...\nVerifier le contenu du fichier')
+            print(f'Le champs ip, nom_bdd et ou le port sont vide(s)...\nVerifier le contenu du fichier')
+            logging.debug(f'Le champs ip, nom_bdd et ou le port sont vide(s)...\nVerifier le contenu du fichier')
             if compteur == 1:
                 print(f'Configuration personnalise invalide(voir fichier param.ini...)')
+                logging.debug(f'Configuration personnalise invalide(voir fichier param.ini...)')
                 recuperer_parametres(compteur - 1)  # Rappel fonction pour tester les parametres par defaults...
             else:
+                logging.debug("Le fichier de configuration par default n'est pas dans les normes!\nVerifier le contenu du fichier...\nProgramme fermé...")
                 sys.exit("Le fichier de configuration par default n'est pas dans les normes!\nVerifier le contenu du fichier...")
         else:
             print(f'Fichier de configuration dans les normes!')
+            logging.debug(f'Fichier de configuration dans les normes!')
 
 def reception_trame(client):
     client.on_connect = on_connect
@@ -333,64 +397,79 @@ def demande_argument_conf():
 # Création d'un client MQTT et attachement des fonctions de callback
 def main():
     try:
-        log_init()
-        logging.debug("|||||||||||||||||||Nouvelles valeurs de log ci dessous|||||||||||||||||||||||")
+        logging.debug("INITIALISATION LANCE(En attente de connexion au broker...)")
+        print(f'INITIALISATION LANCE(En attente de connexion au brocker...)')
+
+        # Recupération paramètre fichier de conf
         demande_argument_conf()
         recuperer_parametres()
+
         print("--------------Attention, apres s'etre connecte avec succes sur le serveur mosquitto, si il n'y a aucune nouvelles données arrivant sur le serveur Python:------------------\n-1/ Serveur mosquito déconnecte ou dysfonctionnelle\n-2/ Probleme reseau ou materiel au niveau du routeur et ou m5stack\n-----------------------------------------------------------------------------------------------------")
         logging.debug("--------------Attention, apres s'etre connecte avec succes sur le serveur mosquitto, si il n'y a aucune nouvelles données arrivant sur le serveur Python:------------------\n-1/ Serveur mosquito déconnecte ou dysfonctionnelle\n-2/ Probleme reseau ou materiel au niveau du routeur et ou m5stack\n------------------------")
+
+        # Création client pour la connexion...
         client = mqtt.Client()
 
+        # Créations des deux threads pour la réception et le traitement des données(Modèle 'producteur consommateur')..
         t1 = Thread(target=reception_trame, args=(client,))
         t2 = Thread(target=reception_message, args=(client,))
 
+        # Lancements des deux threads pour la réception et le traitement des données(Modèle 'producteur consommateur')..
         t1.start()
         t2.start()
 
+        # Valeur des différents paramètre utilisés pour la connexion
+        print(f'ip : {ip} port : {port} nom_bdd : {nom_bdd} fichier : {chemin_fichier_conf}')
+        logging.debug(f'ip : {ip} port : {port} nom_bdd : {nom_bdd} fichier : {chemin_fichier_conf}')
+
         # Connexion au broker
-        print(f'ip : {ip} port : {port} fichier : {chemin_fichier_conf}')
         client.connect(ip, int(port), 60) # add de mon pc ou est le serveur mosquitto qui recoit les paquets lora
 
         # Ecoute permanente des messages
         client.loop_forever()
         client.disconnect()
-    except timeout as time:
+
+    except timeout as time: # Trop de temps ecoule sans aucune action(valeurs champs reseau incorrecte...)
         print(
-            "------------Connexion impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
+            "@Connexion impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
         logging.debug(
-            "------------Connexion impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
+            "@Connexion impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
         main()
         sys.exit(0)  # Fin programme a cause de mauvais parametre de base
 
-    except ValueError as init: # si le type dans les arguments sont mauvais
-        print("------------Lecture du fichier de configuration impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
-        logging.debug("------------Lecture du fichier de configuration impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
+    except ValueError as init: # si les types dans les arguments sont mauvais
+        print("@Lecture du fichier de configuration impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
+        logging.debug("@Lecture du fichier de configuration impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
         main()
         sys.exit(-1)  # Fin programme a cause de mauvais parametre de base
 
-    except ConnectionRefusedError as refused: # type bon mais pas les bonne valeurs
-        print("------------Connexion impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
-        logging.debug("------------Connexion impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
+    except ConnectionRefusedError as refused: # type bon mais pas les bonnes valeurs
+        print("@Connexion impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
+        logging.debug("@Connexion impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
         main()
         sys.exit(-2)  # Fin programme a cause de mauvais parametre de base
-    except gaierror: # Si les valeur données au niveau de l'ip(default) sont incorrecte...
+
+    except gaierror: # Si les valeur données au niveaux des valeurs par defaults sont incorrectes...
         print(
-            "------------Connexion impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
+            "@Connexion impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
         logging.debug(
-            "------------Connexion impossible!------------\nVerifier les différents paramètres dans le fichier(param.ini)...")
+            "@Connexion impossible!@\nVerifier les différents paramètres dans le fichier(param.ini)...")
         main()
         sys.exit(-3)  # Fin programme a cause de mauvais parametre de
 
     except KeyboardInterrupt as stop_pg: # Terminer programme normalement
-        print("------------Connexion termine!------------")
-        logging.debug("------------Connexion termine!------------")
+        print("@Connexion termine!@")
+        logging.debug("@Connexion termine!@")
         sys.exit(-4) # Fin programme en cas d arret volantaire(controle c...)
 
     except Exception as General: # erreur non prise en compte
         print(f'type = {type(General).__name__}')
-        print("------------Une erreur inatendu s'est produite!------------")
-        logging.debug("------------Une erreur inatendu s'est produite!------------")
+        print("@Une erreur inatendu s'est produite!@")
+        logging.debug(f'type = {type(General).__name__}')
+        logging.debug("@Une erreur inatendu s'est produite!@")
         sys.exit(-5)  # Fin programme a cause de mauvais parametre de base
 
 # Programme principale
+log_init()
+logging.debug("|||||||||||||||||||Nouvelles valeurs de log ci dessous|||||||||||||||||||||||")
 main()

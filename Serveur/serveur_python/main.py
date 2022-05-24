@@ -178,9 +178,8 @@ def on_connect(client, userdata, flags, rc):
     """S'abonner à d'autres appareils:
     lora/identifiant_lora_appareil/up,
     Cet identifiant sera visible sur le serveur qui recoit les données"""
-    #client.subscribe("lora/70-b3-d5-9b-a0-00-65-9e/up",) # Vrai donnees
-    client.subscribe("lora/#") # donnees test
-    #client.subscribe("lora/00-00-00-00-00-00-00-00/70-b3-d5-7e-d0-04-de-9e/up")
+    client.subscribe("lora/70-b3-d5-9b-a0-00-65-9e/up",) # Vrai donnees
+    #client.subscribe("lora/#") # donnees test
 
 # Traiter données avec la gestion du flag pour l'enregistrement dans une BDD
 def traitement_donnee(list):
@@ -312,10 +311,23 @@ def on_message(client, userdata, msg):
         logging.debug(f" crc = {crc}")
         if crc == found_3 :
             """Ajout BDD..."""
-            print(f'Données lisible et enregistre dans la base de donnee(crc valide)...!')
+            print(f'Données lisible en cours d enregistrement dans la base de donnee(crc valide)...!')
             logging.debug(f'Données lisible et enregistre dans la base de donnee(crc valide)...!')
-            list_data = (1, 1, 10.0, 20.0, 15.0, 16.5, 17.5, 18.5)
-            Ajout_Base_Donnee(list_data, "bdd_embarquai.sqlite", "data_bateau")
+
+            # Séparation des données dans une liste pour le traitement
+            List_donnee_ = found_2.split(";")
+            List_donnee_.remove('')  # Supprimer l'élément vide
+            traitement_donnee(List_donnee_)
+
+            # Liste qui contiendra les donnée à enregistrer dans la BDD
+            global list_data_bdd  # id_course, id_bateau, latitude, longitude, cap, vitesse, vitesse_vent, direction_vent, date
+
+            # Récupérer heure et date du moment
+            curent_time = datetime.datetime.now()
+            list_data_bdd[8] = curent_time
+
+            # Ajout bdd
+            Ajout_Base_Donnee(list_data_bdd, nom_bdd, "data_bateau")  # data, nom bdd, nom table
         else:
             print(f'Données lisible mais corrompu(crc invalide)...!')
             logging.debug(f'Données lisible mais corrompu(crc invalide)...!')
@@ -381,8 +393,8 @@ def reception_trame(client):
     client.on_connect = on_connect
 
 def reception_message(client):
-    #client.on_message = on_message # vrai donnees
-    client.on_message = on_message_test # fausse donnees(test..)
+    client.on_message = on_message # vrai donnees
+    #client.on_message = on_message_test # fausse donnees(test..)
 
 # Recuperation argument pour travailler sur le fichier de configuration
 def demande_argument_conf():

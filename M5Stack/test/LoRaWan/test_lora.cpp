@@ -39,7 +39,7 @@ void setup() {
  */
 void loop() {
     static int compteur = 0;
-    navi::data_navi data;
+    navi::data_navi data; // Structure de donnée capteur
     lora::Send_Message_Lorawan(data);
     
     Serial.println("ok");

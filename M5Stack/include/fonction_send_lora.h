@@ -8,8 +8,22 @@
 namespace lora{
 
     /**
+     * @brief Fonction qui va inverser une chaine de caractère
+     * @param flag Chaine de caractère contenant la chaine à inverser
+     * @return String : Chaine de caractère inversé
+     */
+    String Reversed_data(String flag);
+
+    /**
+    * @brief Fonction qui va remplir une chaine de caractère contenant les infos mise à jour en fonction de la valeur du flag.
+    * @param data structure qui contiend les différents champs qui contiennent les données des capteurs
+    * @return String, Chaine de caractère contenant la data (flag + donnée(s) capteur(s)) 
+    */
+    String Traitement_flag_data(const navi::data_navi& data);
+
+    /**
     * @brief Fonction qui va envoyer une chaine de caractère sur un module lorawan.
-    * @param data donnee structure ui contiendra les différents champs qui contiendront les données des capteurs
+    * @param data donnee structure qui contiendra les différents champs qui contiendront les données des capteurs
     * @return void 
     */
     void Send_Message_Lorawan(const navi::data_navi& data);

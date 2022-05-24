@@ -22,18 +22,20 @@ namespace navi{
         
 
         //flags pour indiquer le contenue valide de la data
-        byte data_content = B00000000;
+        byte data_content = 0b00000000;
     };
 
-    //fr
+    /**
+     * @brief enum des différents flags qui indique le contenue de la structure data_navi
+     */
     enum data_navi_content{
 
-        HEADING     = B00000001,
-        SPEED       = B00000010,
-        LATITUDE    = B00000100,
-        LONGITUDE   = B00001000,
-        WINDSPEED   = B00010000,
-        WINDANGLE   = B00100000
+        HEADING     = 0b00000001,
+        SPEED       = 0b00000010,
+        LATITUDE    = 0b00000100,
+        LONGITUDE   = 0b00001000,
+        WINDSPEED   = 0b00010000,
+        WINDANGLE   = 0b00100000
     };
 }
 

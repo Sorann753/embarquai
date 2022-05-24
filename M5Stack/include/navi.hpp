@@ -16,6 +16,7 @@
 #include <N2kMsg.h>
 #include <NMEA2000.h>
 #include <N2kMessages.h>
+#include "data_navi.hpp"
 
 
 
@@ -39,11 +40,37 @@ namespace navi{
 
         void begin();
         void handle(const tN2kMsg &N2kMsg);
-        void get_nmea_data();
+        void fetch_nmea_data();
+
+        /**
+         * @brief change l'identifiant du bateau
+         * @param newId le nouvel identifiant du bateau
+         * @return rien
+         * @throw throw std::invalid_argument si newId < 0
+         */
+        void set_id_bateau(int32_t newId);
+
+        /**
+         * @brief change l'identifiant de la course a la quel participe le bateau
+         * @param newId le nouvel identifiant de la course
+         * @return rien
+         * @throw throw std::invalid_argument si newId < 0
+         */
+        void set_id_course(int32_t newId);
+
+
+
+        /**
+         * @brief
+         * @param
+         * @return
+         */
+        [[nodiscard]] data_navi pop_data();
 
     private:
 
-
+        //dernières données qui n'ont pas encore été envoyées
+        data_navi _data{};
 
         //fonctions privés
         void handleHeading(const tN2kMsg& N2kMsg) noexcept; // 127250L

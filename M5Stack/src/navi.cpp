@@ -6,7 +6,7 @@
  */
 
 #include "navi.hpp"
-#include <NMEA2000_CAN.h>  // This will automatically choose right CAN library and create suitable NMEA2000 object
+#include <NMEA2000_CAN.h>  // choisi automatiquement la bonne librairie CAN et construit le bon objet NMEA2000
 
 namespace navi{
 
@@ -168,19 +168,19 @@ namespace navi{
 
             switch (headingType){
                 case tN2kHeadingReference::N2khr_error :
-                    Serial.print("Error : heading type error");
+                    Serial.println("Error : heading type error");
                 break;
 
                 case tN2kHeadingReference::N2khr_magnetic :
-                    Serial.print("orientation based on the magnetic north");
+                    Serial.println("orientation based on the magnetic north");
                 break;
 
                 case tN2kHeadingReference::N2khr_true :
-                    Serial.print("orientation based on the true north");
+                    Serial.println("orientation based on the true north");
                 break;
 
                 case tN2kHeadingReference::N2khr_Unavailable :
-                    Serial.print("can't get heading type");
+                    Serial.println("can't get heading type");
                 break;
             }
 
@@ -190,6 +190,7 @@ namespace navi{
             Serial.print("Speed over ground : ");
             Serial.println(SOG);
         }
+        Serial.println();
     }
 
 
@@ -256,7 +257,7 @@ namespace navi{
     * @param 
     * @return 
     */
-    void c_Navi::get_nmea_data(){
+    void c_Navi::fetch_nmea_data(){
 
         if(!started) return;
 
@@ -273,17 +274,17 @@ namespace navi{
     void c_Navi::handle(const tN2kMsg &NmeaMessage){
     
         /*
-        KNOWN PGN LIST : 
-        PGN : 60928  -> ISO Address Claim (unused)
-        PGN : 127250 -> magnetic heading
-        PGN : 127251 -> rate of turn (unused)
-        PGN : 128259 -> boat speed (vitesse du bateau sur l'eau)
-        PGN : 128267 -> water depth (unused)
-        PGN : 129025 -> position GPS
-        PGN : 129026 -> COG SOG (vitesse et orientation calculé a partir des data GPS)
-        PGN : 130306 -> wind data
-        PGN : 130311 -> temperatures (unused)
-        */
+        ** KNOWN PGN LIST : 
+        ** PGN : 60928  -> ISO Address Claim (unused)
+        ** PGN : 127250 -> magnetic heading
+        ** PGN : 127251 -> rate of turn (unused)
+        ** PGN : 128259 -> boat speed (vitesse du bateau sur l'eau)
+        ** PGN : 128267 -> water depth (unused)
+        ** PGN : 129025 -> position GPS
+        ** PGN : 129026 -> COG SOG (vitesse et orientation calculé a partir des data GPS)
+        ** PGN : 130306 -> wind data
+        ** PGN : 130311 -> temperatures (unused)
+        **/
 
         switch(NmeaMessage.PGN){
 
@@ -332,6 +333,40 @@ namespace navi{
                 Serial.println();
             break;
         }
+    }
+
+
+
+    /**
+     * @brief change l'identifiant du bateau
+     * @param newId le nouvel identifiant du bateau
+     * @return rien
+     * @throw throw std::invalid_argument si newId < 0
+     */
+    void c_Navi::set_id_bateau(int32_t newId){
+
+        if(newId <= 0){
+            throw std::invalid_argument("id bateau invalide");
+        }
+
+        this->_data.id_bateau = newId;
+    }
+
+
+
+    /**
+     * @brief change l'identifiant de la course a la quel participe le bateau
+     * @param newId le nouvel identifiant de la course
+     * @return rien
+     * @throw throw std::invalid_argument si newId < 0
+     */
+    void c_Navi::set_id_course(int32_t newId){
+
+        if(newId <= 0){
+            throw std::invalid_argument("id course invalide");
+        }
+
+        this->_data.id_course = newId;
     }
 
     //on construit un objet Navi pour pouvoir l'utilisé de manière globale

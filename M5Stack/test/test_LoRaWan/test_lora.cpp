@@ -42,9 +42,9 @@ void loop() {
     navi::data_navi data; // Structure de donnée capteur
     lora::Send_Message_Lorawan(data);
     
-    Serial.println("ok");
+    Serial.println("ok1");
     delay(100);
     compteur++;
 
-    if(compteur > 10000){UNITY_END();} // termine le test unitaire}
+    if(compteur > 1){UNITY_END();}
 }

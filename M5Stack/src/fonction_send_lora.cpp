@@ -9,7 +9,7 @@ namespace lora{
  * @param flag Chaine de caractère contenant la chaine à inverser
  * @return String : Chaine de caractère inversé
  */
-String Reversed_data(String flag)
+String lora::Reversed_data(String flag)
 {
     String Data_reversed {""};
     for (int i = flag.length() - 1; i >= 0; i--)
@@ -24,7 +24,7 @@ String Reversed_data(String flag)
 * @param data structure qui contiend les différents champs qui contiennent les données des capteurs
 * @return String, Chaine de caractère contenant la data (flag + donnée(s) capteur(s)) 
 */
-String Traitement_flag_data(const navi::data_navi& data)
+String lora::Traitement_flag_data(const navi::data_navi& data)
 {
     // Variable locale
     String message{""};

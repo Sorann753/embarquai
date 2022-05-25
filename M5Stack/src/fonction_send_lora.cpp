@@ -46,13 +46,11 @@ String lora::Traitement_flag_data(const navi::data_navi& data)
         message += String(data.WindAngle, 2) + ";";
     }
 
-    // Transformation du flag binaire en decimale
-    int flag_dec = static_cast<char>(data.data_content);
-
     //Formation de la data
-    String Data = String(flag_dec, 10) + ";" + String(data.id_course, 10) + ";" + String(data.id_bateau, 10) + ";";
+    String config = String(data.id_course, 10) + ";" + String(data.id_bateau, 10);
+    String trame = String(static_cast<int>(data.data_content), 10) + ";" + config + ";" + message;
 
-    return Data;
+    return trame;
 }
 
 /**
@@ -83,6 +81,7 @@ void lora::Send_Message_Lorawan(const navi::data_navi& data)
     Borne += message + "!";
     Borne += crc_bin + "~'"; // Fin message
     
+    Serial.println(Borne); // DEBUG
     Serial2.println(Borne); // Trame message -> Serial2.println("b'&Loris;Loris&'");
     delay(2000);
 }

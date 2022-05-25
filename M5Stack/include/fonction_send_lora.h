@@ -8,13 +8,6 @@
 namespace lora{
 
     /**
-     * @brief Fonction qui va inverser une chaine de caractère
-     * @param flag Chaine de caractère contenant la chaine à inverser
-     * @return String : Chaine de caractère inversé
-     */
-    String Reversed_data(String flag);
-
-    /**
     * @brief Fonction qui va remplir une chaine de caractère contenant les infos mise à jour en fonction de la valeur du flag.
     * @param data structure qui contiend les différents champs qui contiennent les données des capteurs
     * @return String, Chaine de caractère contenant la data (flag + donnée(s) capteur(s)) 

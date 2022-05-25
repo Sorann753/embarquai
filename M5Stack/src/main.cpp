@@ -66,15 +66,31 @@ void loop_led(void*){
     }
 }
 
+void send_with_lora(void*){
+
+    while(true){
+
+        navi::data_navi data = Navi.pop_data();
+        if(data.data_content != 0){
+            lora::Send_Message_Lorawan(data);
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+
+
 void setup() {
 
     M5.begin(true, false);
     Serial.begin(115200);
 
     Navi.begin();
-
+    lora::init();
     init_IHM();
-    xTaskCreate(loop_led, "clignotement", 2048, NULL, 1, NULL);
+
+    xTaskCreate(loop_led, "BLINKING", 2048, NULL, 1, NULL);
+    xTaskCreate(send_with_lora, "SEND LORA", 4096, NULL, 3, NULL);
 }
 
 

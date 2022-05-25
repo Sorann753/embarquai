@@ -27,40 +27,11 @@ namespace navi{
 
         if(ParseN2kHeading(N2kMsg, messageIdentifier, heading, deviation, variation, headingType) ){
 
-            switch (headingType){
-                case tN2kHeadingReference::N2khr_error :
-                    Serial.print("Error : heading type error");
-                break;
+            if(!N2kIsNA(heading)){
 
-                case tN2kHeadingReference::N2khr_magnetic :
-                    Serial.print("orientation based on the magnetic north");
-                break;
-
-                case tN2kHeadingReference::N2khr_true :
-                    Serial.print("orientation based on the true north");
-                break;
-
-                case tN2kHeadingReference::N2khr_Unavailable :
-                    Serial.print("heading type is unavailable");
-                break;
+                this->_data.heading = heading;
+                this->_data.data_content |= navi::data_navi_content::HEADING;
             }
-
-            Serial.print("heading toward : ");
-            Serial.print(heading);
-            Serial.print(" radians");
-            Serial.println();
-
-            Serial.print("deviation : ");
-            Serial.print(deviation);
-            Serial.print(" radians");
-            Serial.println();
-
-            Serial.print("variation : ");
-            Serial.print(variation);
-            Serial.print(" radians");
-            Serial.println();
-
-            Serial.println();
         }
     }
 
@@ -79,51 +50,14 @@ namespace navi{
         tN2kSpeedWaterReferenceType sensorType{};
         if(ParseN2kBoatSpeed(N2kMsg, SID, speed_to_water, speed_to_ground, sensorType)){
 
-            Serial.print("speed to water : ");
-            Serial.println(speed_to_water);
-
-            if(!N2kIsNA(speed_to_ground)){ //si la vitesse par rapport au sol est connue
-                Serial.print("speed to ground : ");
-                Serial.println(speed_to_ground);
+            if(!N2kIsNA(speed_to_water)){
+                this->_data.speed = speed_to_water;
+                this->_data.data_content |= navi::data_navi_content::SPEED;
             }
-
-            Serial.print("type de capteur : ");
-            switch(sensorType){
-
-                case N2kSWRT_Paddle_wheel:
-                    Serial.println("N2kSWRT_Paddle_wheel");
-                break;
-
-                case N2kSWRT_Pitot_tube:
-                    Serial.println("N2kSWRT_Pitot_tube");
-                break;
-
-                case N2kSWRT_Doppler_log:
-                    Serial.println("N2kSWRT_Doppler_log");
-                break;
-
-                case N2kSWRT_Ultra_Sound:
-                    Serial.println("N2kSWRT_Ultra_Sound");
-                break;
-
-                case N2kSWRT_Electro_magnetic:
-                    Serial.println("N2kSWRT_Electro_magnetic");
-                break;
-
-                case N2kSWRT_Error:
-                    Serial.println("N2kSWRT_Error");
-                break;
-
-                case N2kSWRT_Unavailable:
-                    Serial.println("N2kSWRT_Unavailable");
-                break;
-
-                default:
-                    Serial.println("???");
-                break;
+            else if(!N2kIsNA(speed_to_ground)){
+                this->_data.speed = speed_to_ground;
+                this->_data.data_content |= navi::data_navi_content::SPEED;
             }
-
-            Serial.println();
         }
     }
 
@@ -141,13 +75,15 @@ namespace navi{
 
         if(ParseN2kPositionRapid(N2kMsg, latitude, longitude) ){
 
-            Serial.print("latitude : ");
-            Serial.println(latitude);
+            if(!N2kIsNA(latitude)){
+                this->_data.latitude = latitude;
+                this->_data.data_content |= navi::data_navi_content::LATITUDE;
+            }
 
-            Serial.print("longitude : ");
-            Serial.println(longitude);
-
-            Serial.println();
+            if(!N2kIsNA(longitude)){
+                this->_data.latitude = longitude;
+                this->_data.data_content |= navi::data_navi_content::LONGITUDE;
+            }
         }
     }
 
@@ -166,31 +102,32 @@ namespace navi{
         double SOG = 0; // Speed Over Ground (peut remplacé la speed_to_water)
         if(ParseN2kCOGSOGRapid(N2kMsg, messageIdentifier, headingType, COG, SOG) ){
 
-            switch (headingType){
-                case tN2kHeadingReference::N2khr_error :
-                    Serial.println("Error : heading type error");
-                break;
+            //TODO faire en sorte que le COG SOG puisse remplacé la vitesse si besoin
+            // switch (headingType){
+            //     case tN2kHeadingReference::N2khr_error :
+            //         Serial.println("Error : heading type error");
+            //     break;
 
-                case tN2kHeadingReference::N2khr_magnetic :
-                    Serial.println("orientation based on the magnetic north");
-                break;
+            //     case tN2kHeadingReference::N2khr_magnetic :
+            //         Serial.println("orientation based on the magnetic north");
+            //     break;
 
-                case tN2kHeadingReference::N2khr_true :
-                    Serial.println("orientation based on the true north");
-                break;
+            //     case tN2kHeadingReference::N2khr_true :
+            //         Serial.println("orientation based on the true north");
+            //     break;
 
-                case tN2kHeadingReference::N2khr_Unavailable :
-                    Serial.println("can't get heading type");
-                break;
-            }
+            //     case tN2kHeadingReference::N2khr_Unavailable :
+            //         Serial.println("can't get heading type");
+            //     break;
+            // }
 
-            Serial.print("Course over ground : ");
-            Serial.println(COG);
+            // Serial.print("Course over ground : ");
+            // Serial.println(COG);
 
-            Serial.print("Speed over ground : ");
-            Serial.println(SOG);
+            // Serial.print("Speed over ground : ");
+            // Serial.println(SOG);
         }
-        Serial.println();
+        // Serial.println();
     }
 
 
@@ -209,16 +146,15 @@ namespace navi{
 
         if(ParseN2kWindSpeed(N2kMsg, messageIdentifier, WindSpeed, WindAngle, windType) ){
 
-            Serial.print("wind speed : ");
-            Serial.println(WindSpeed);
+            if(!N2kIsNA(WindSpeed)){
+                this->_data.WindSpeed = WindSpeed;
+                this->_data.data_content |= data_navi_content::WINDSPEED;
+            }
 
-            Serial.print("wind angle : ");
-            Serial.println(WindAngle);
-
-            Serial.print("wind type : ");
-            Serial.println(windType);
-
-            Serial.println();
+            if(!N2kIsNA(WindAngle)){
+                this->_data.WindAngle = WindAngle;
+                this->_data.data_content |= data_navi_content::WINDANGLE;
+            }
         }
     }
 
@@ -234,7 +170,6 @@ namespace navi{
         //s'assure qu'on n'ai pas déjà appelé begin
         if(started) return;
 
-        // Do not forward bus messages at all
         NMEA2000.EnableForward(false);
         NMEA2000.SetMsgHandler([](const tN2kMsg &N2kMsg){
             Navi.handle(N2kMsg);
@@ -310,27 +245,27 @@ namespace navi{
 
             default: //si le PGN n'est pas connu
 
-                Serial.print("Unknown message from : ");
-                Serial.println((int)NmeaMessage.Source);
+                // Serial.print("Unknown message from : ");
+                // Serial.println((int)NmeaMessage.Source);
 
-                Serial.print("PGN : ");
-                Serial.println(NmeaMessage.PGN);
+                // Serial.print("PGN : ");
+                // Serial.println(NmeaMessage.PGN);
 
-                Serial.print("destination : ");
-                Serial.println((int)NmeaMessage.Destination);
+                // Serial.print("destination : ");
+                // Serial.println((int)NmeaMessage.Destination);
 
-                Serial.print("priority : ");
-                Serial.println((int)NmeaMessage.Priority);
+                // Serial.print("priority : ");
+                // Serial.println((int)NmeaMessage.Priority);
 
-                Serial.print("nb bytes : ");
-                Serial.println(NmeaMessage.DataLen);
+                // Serial.print("nb bytes : ");
+                // Serial.println(NmeaMessage.DataLen);
                 
-                Serial.print("msg time : ");
-                Serial.println(NmeaMessage.MsgTime);
+                // Serial.print("msg time : ");
+                // Serial.println(NmeaMessage.MsgTime);
 
-                Serial.println( (NmeaMessage.IsValid())? "message is valid" : "message is invalid");
+                // Serial.println( (NmeaMessage.IsValid())? "message is valid" : "message is invalid");
 
-                Serial.println();
+                // Serial.println();
             break;
         }
     }
@@ -367,6 +302,19 @@ namespace navi{
         }
 
         this->_data.id_course = newId;
+    }
+
+
+
+    [[nodiscard]] data_navi c_Navi::pop_data(){
+
+        //si il n'y a pas de données alors on ne s'embête pas a réinitialisé _data
+        if(this->_data.data_content == 0) return this->_data;
+
+        data_navi poped_data = this->_data;
+        this->_data = data_navi{};
+
+        return poped_data;
     }
 
     //on construit un objet Navi pour pouvoir l'utilisé de manière globale

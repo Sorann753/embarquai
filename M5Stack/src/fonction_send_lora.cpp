@@ -9,7 +9,7 @@ namespace lora{
  * @param flag Chaine de caractère contenant la chaine à inverser
  * @return String : Chaine de caractère inversé
  */
-String Reversed_data(String flag)
+String lora::Reversed_data(String flag)
 {
     String Data_reversed {""};
     for (int i = flag.length() - 1; i >= 0; i--)
@@ -24,49 +24,49 @@ String Reversed_data(String flag)
 * @param data structure qui contiend les différents champs qui contiennent les données des capteurs
 * @return String, Chaine de caractère contenant la data (flag + donnée(s) capteur(s)) 
 */
-String Traitement_flag_data(const navi::data_navi& data)
+String lora::Traitement_flag_data(const navi::data_navi& data)
 {
     // Variable locale
     String message{""};
     String flag{""};
     
     //Traitement avec un 'ET logique' pour voir si il y a un bit à 1 ou pas sur chaque bit du flag
-    if(data.data_content & navi::data_navi_content::HEADING != 0)
+    if(data.data_content & navi::data_navi_content::HEADING)
     {
         flag += "1";
         message += String(data.heading, 2) + ";";
     }
     else{flag += "0";}
 
-    if(data.data_content & navi::data_navi_content::SPEED != 0)
+    if(data.data_content & navi::data_navi_content::SPEED)
     {
         flag += "1";
         message += String(data.speed, 2) + ";";
     }
     else{flag += "0";}
 
-    if(data.data_content & navi::data_navi_content::LATITUDE != 0)
+    if(data.data_content & navi::data_navi_content::LATITUDE)
     {
         flag += "1";
         message += String(data.latitude, 5) + ";";
     }
     else{flag += "0";}
 
-    if(data.data_content & navi::data_navi_content::LONGITUDE != 0)
+    if(data.data_content & navi::data_navi_content::LONGITUDE)
     {
         flag += "1";
         message += String(data.longitude, 5) + ";";
     }
     else{flag += "0";}
 
-    if(data.data_content & navi::data_navi_content::WINDSPEED != 0)
+    if(data.data_content & navi::data_navi_content::WINDSPEED)
     {
         flag += "1";
         message += String(data.WindSpeed, 2) + ";";
     }
     else{flag += "0";}
 
-    if(data.data_content & navi::data_navi_content::WINDANGLE != 0)
+    if(data.data_content & navi::data_navi_content::WINDANGLE)
     {
         flag += "1";
         message += String(data.WindAngle, 2) + ";";
@@ -77,13 +77,12 @@ String Traitement_flag_data(const navi::data_navi& data)
     // Formation du flag au complet
     flag += "00B";
     flag = Reversed_data(flag);
-    flag += ";";
 
     //Formation de la data
-    flag += String(data.id_course, 10) + ";" + String(data.id_bateau, 10) + ";";
-    flag += message;
+    String config = String(data.id_course, 10) + ";" + String(data.id_bateau, 10);
+    String trame = flag + ";" + config + ";" + message;
 
-    return flag;
+    return trame;
 }
 
 /**
@@ -120,6 +119,7 @@ void lora::Send_Message_Lorawan(const navi::data_navi& data)
     Borne += message + "!";
     Borne += crc_bin + "~'"; // Fin message
     
+    Serial.println(Borne); // DEBUG
     Serial2.println(Borne); // Trame message -> Serial2.println("b'&Loris;Loris&'");
     delay(2000);
 }

@@ -86,16 +86,23 @@ def Ajout_Base_Donnee(list_data, Nom_bdd, Nom_table):
         print(f'Operations effectuées correctement sur la base de donnée, nom : {Name_Base_donnee}')
         logging.debug(f'Operations effectuées correctement sur la base de donnée, nom : {Name_Base_donnee}')
 
+# Fonction pour transformer une décimale en binaire
+def int2bin(integer, digits): # 1: valeur décimale / 2:  nb bit(s)
+    if integer >= 0:
+        return bin(integer)[2:].zfill(digits)
+    else:
+        return bin(2**digits + integer)[2:]
+
 # Fonction pour une transformation binaire
 def strToBinary(s):
     bin_conv = []
 
     for c in s:
-        # convert each char to
-        # ASCII value
+        # Convertie chaque char en
+        # valeur ASCCI
         ascii_val = ord(c)
 
-        # Convert ASCII value to binary
+        # Coversion de la valeur ASCCI en binaire
         binary_val = bin(ascii_val)
         bin_conv.append(binary_val[2:])
 
@@ -104,11 +111,11 @@ def strToBinary(s):
 # Fonctions pour verifier le CRC
 # Fonction pour effectuer un 'ou' exclusif(xor)
 def xor(a, b):
-    # initialize result
+    # Initialisation du résultat
     result = []
 
-    # Traverse all bits, if bits are
-    # same, then XOR is 0, else 1
+    # Traverse tous les bits, si les bits sont
+    # pareil, alors XOR vaut 0, sinon 1
     for i in range(1, len(b)):
         if a[i] == b[i]:
             result.append('0')
@@ -117,37 +124,37 @@ def xor(a, b):
 
     return ''.join(result)
 
-# Performs Modulo-2 division
+# Effectue la division Modulo-2
 def mod2div(divident, divisor):
-    # Number of bits to be XORed at a time.
+    # Nombre de bits ou on doit appliquer le XOR.
     pick = len(divisor)
 
-    # Slicing the divident to appropriate
-    # length for particular step
+    # Couper le diviseur pour s'approprier
+    # longueur pour une étape particulière
     tmp = divident[0: pick]
 
     while pick < len(divident):
 
         if tmp[0] == '1':
 
-            # replace the divident by the result
-            # of XOR and pull 1 bit down
+            # Remplacer le diviseur par le résultat
+            # de XOR et tirez 1 bit vers le bas
             tmp = xor(divisor, tmp) + divident[pick]
 
-        else:  # If leftmost bit is '0'
+        else:  # Si le bit le plus à gauche est '0'
 
-            # If the leftmost bit of the dividend (or the
-            # part used in each step) is 0, the step cannot
-            # use the regular divisor; we need to use an
-            # all-0s divisor.
+            # Si le bit le plus à gauche du dividende (ou le
+            # partie utilisée dans chaque étape) est 0, l'étape ne peut pas
+            # utilise le diviseur normal ; nous devons utiliser un
+            # diviseur de tous les 0.
             tmp = xor('0' * pick, tmp) + divident[pick]
 
-        # increment pick to move further
+        # incrémenter pick pour aller plus loin
         pick += 1
 
-    # For the last n bits, we have to carry it out
-    # normally as increased value of pick will cause
-    # Index Out of Bounds.
+    # Pour les n derniers bits, il faut le réaliser
+    # normalement, car l'augmentation de la valeur de pick entraînera
+    # Index hors limites.
     if tmp[0] == '1':
         tmp = xor(divisor, tmp)
     else:
@@ -156,13 +163,13 @@ def mod2div(divident, divisor):
     checkword = tmp
     return checkword
 
-# Function used at the sender side to encode
-# data by appending remainder of modular division
-# at the end of data.
+# Fonction utilisée pour encoder les
+# données en ajoutant le reste de la division modulaire
+# à la fin des données.
 def encodeData(data, key):
     l_key = len(key)
 
-    # Appends n-1 zeroes at end of data
+    # Ajoute n-1 0 à la fin de la data
     appended_data = data + '0' * (l_key - 1)
     remainder = mod2div(appended_data, key)
 
@@ -260,7 +267,12 @@ def on_message_test(client, userdata, msg):
 
             # Séparation des données dans une liste pour le traitement
             List_donnee_ = found_2.split(";")
-            List_donnee_.remove('') # Supprimer l'élément vide
+            List_donnee_.remove('')  # Supprimer l'élément vide
+
+            # Transformation binaire pour traitement du flag
+            List_donnee_[0] = str(int2bin(int(List_donnee_[0]), 6))
+
+            # Ajout donnée pour traitement avec le flag...
             traitement_donnee(List_donnee_)
 
             # Liste qui contiendra les donnée à enregistrer dans la BDD
@@ -317,6 +329,11 @@ def on_message(client, userdata, msg):
             # Séparation des données dans une liste pour le traitement
             List_donnee_ = found_2.split(";")
             List_donnee_.remove('')  # Supprimer l'élément vide
+
+            # Transformation binaire pour traitement du flag
+            List_donnee_[0] = str(int2bin(int(List_donnee_[0]), 6))
+
+            # Ajout donnée pour traitement avec le flag...
             traitement_donnee(List_donnee_)
 
             # Liste qui contiendra les donnée à enregistrer dans la BDD

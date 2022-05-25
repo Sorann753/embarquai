@@ -81,7 +81,7 @@ namespace navi{
             }
 
             if(!N2kIsNA(longitude)){
-                this->_data.latitude = longitude;
+                this->_data.longitude = longitude;
                 this->_data.data_content |= navi::data_navi_content::LONGITUDE;
             }
         }

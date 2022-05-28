@@ -83,7 +83,7 @@ void lora::Send_Message_Lorawan(const navi::data_navi& data)
     
     Serial.println(Borne); // DEBUG
     Serial2.println(Borne); // Trame message -> Serial2.println("b'&Loris;Loris&'");
-    //Serial2.println("b'@9;1;0;9.0;48.25868;!01000101~'"); //DEBUG
+    //Serial2.println("b'@9;1;0;9.0;48.25868;!01000101~'"); //DEBUG, exemple de données qui respectent le format de la trame choisi et compatible avec le serveur python
     delay(2000);
 }
 

@@ -1,4 +1,17 @@
+"""Programme qui va servir à générer un fichier de configuration avec le champ : ip, port, nom_bdd.
+Usage:
+======
+    python main.py
+"""
+
+__authors__ = ("Loris Benaitier")
+__copyright__ = "MIT"
+__date__ = "2022-05-01"
+__version__= "1.0"
+
+# Bibliotèque
 import configparser
+
 config = configparser.ConfigParser()
 config['RESEAU'] = {'port': 'Remplacer champ(uniquement chiffres ou nombres)',
                      'ip': 'Remplacer champ(uniquement chiffres ou nombres)'}

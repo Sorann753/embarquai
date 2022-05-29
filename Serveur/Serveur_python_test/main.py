@@ -1,4 +1,5 @@
-"""Serveur de test pour se connecter en mqtt et recuperer des messages publiés sur un serveur.
+"""Serveur de test pour se connecter en mqtt et recuperer des messages publiés de type lora sur un serveur.
+   lora/# -> Affiche tout ce qui vient de lora...
 Usage:
 ======
     python main.py

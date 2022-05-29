@@ -1,3 +1,18 @@
+"""Serveur python qui récupèrent les messages de type lora/up, décodent les données utilent, utilisent et enregistrent les données dans une base de donnée.
+Usage:
+======
+    python main.py 
+
+"""
+
+__authors__ = ("Loris Benaitier")
+__copyright__ = "MIT"
+__date__ = "2022-05-01"
+__version__= "1.0"
+
+
+
+
 # Librairies utilisées
 from socket import timeout, gaierror
 from threading import Thread
@@ -19,6 +34,10 @@ list_data_bdd = [-1, -1, 0, 0, 0, 0, 0, 0, 0]
 
 # Fonction pour générerer fichier historique système
 def log_init():
+    """! Fonction qui va générer un fichier log pour la sauvegarde des messages d'erreurs ou de debug pour chaque sessions (Si le fichier existe deja, alors il ecrit dedans). 
+    @param aucun
+    @return rien
+    """
     try:
         logging.basicConfig(level=logging.DEBUG,
                             filename="historique.log",
@@ -32,6 +51,12 @@ def log_init():
 
 # Fonction pour ajouter données dans une BDD
 def Ajout_Base_Donnee(list_data, Nom_bdd, Nom_table):
+    """! Fonctions qui va enregistrer les données capteurs contenues dans les trames lora.
+    @param list_data Liste de données contenant les informations à enregistrer
+    @param Nom_bdd Chaine de caractère contenant le nom de la base de donnée
+    @param Nom_table Chaine de caractère contenant le nom de la table
+    @return rien
+    """
 
     # Variable activation pour gérer les bugs...
     Activ_1 = False
@@ -88,6 +113,11 @@ def Ajout_Base_Donnee(list_data, Nom_bdd, Nom_table):
 
 # Fonction pour transformer une décimale en binaire
 def int2bin(integer, digits): # 1: valeur décimale / 2:  nb bit(s)
+    """! Fonction qui transforme une décimale en binaire.
+    @param integer Variable contenant la valeur décimale à transformer
+    @param digits Variable qui définit sur combien de bit on veut que le resultat de la transformation soit faite
+    @return bin Valeur transforme en binaire
+    """
     if integer >= 0:
         return bin(integer)[2:].zfill(digits)
     else:
@@ -95,6 +125,10 @@ def int2bin(integer, digits): # 1: valeur décimale / 2:  nb bit(s)
 
 # Fonction pour une transformation binaire
 def strToBinary(s):
+    """! Fonction qui effectue une transformation binaire.
+    @param s Chaine de caractère qu'on souhaite transformer
+    @return Variable Resultat de la transformation (valeur binaire)
+    """
     bin_conv = []
 
     for c in s:
@@ -111,6 +145,11 @@ def strToBinary(s):
 # Fonctions pour verifier le CRC
 # Fonction pour effectuer un 'ou' exclusif(xor)
 def xor(a, b):
+    """! Fonction qui effectue un ou exclusif (XOR).
+    @param a Variable qui est une des composantes sur laquelle on veut effectuer un XOR
+    @param b Variable qui est une des composantes sur laquelle on veut effectuer un XOR
+    @return Variable Valeur modifier apres le XOR
+    """
     # Initialisation du résultat
     result = []
 
@@ -126,6 +165,11 @@ def xor(a, b):
 
 # Effectue la division Modulo-2
 def mod2div(divident, divisor):
+    """! Fonction qui Effectue la division Modulo-2.
+    @param divident Une des composantes sur la quelle on faire un Modulo-2 
+    @param divisor Une des composantes sur la quelle on faire un Modulo-2
+    @return Variable Resultat du Modulo-2
+    """
     # Nombre de bits ou on doit appliquer le XOR.
     pick = len(divisor)
 
@@ -167,6 +211,11 @@ def mod2div(divident, divisor):
 # données en ajoutant le reste de la division modulaire
 # à la fin des données.
 def encodeData(data, key):
+    """! Fonction qui sera utilisée pour encoder les données en ajoutant le reste de la division modulaire à la fin des données (CRC).
+    @param data Donnée sur laquelle on souhaite effectuer l'opération
+    @param key Clé pour le CRC définit au préalable
+    @return remainder CRC
+    """
     l_key = len(key)
 
     # Ajoute n-1 0 à la fin de la data
@@ -178,6 +227,13 @@ def encodeData(data, key):
 # Client python
 # Fonction de "callback" quand la connexion est établie
 def on_connect(client, userdata, flags, rc):
+    """! Fonction qu'on appelle lorsque le client reçoit une réponse lora du serveur.
+    @param client Identité du client
+    @param userdata Données définies par l'utilisateur de tout type qui sont transmises en tant que paramètre userdata aux rappels
+    @param flag objet dictionnaire utilisé pour vérifier si vous avez défini une session propre sur True ou False pour l'objet client
+    @param rc code de résultat , est utilisé pour vérifier l'état de la connexion
+    @return  rien
+    """
     print(f"Connexion réussies au broker (code={rc})")
     logging.debug(f"Connexion réussies au broker (code={rc})")
 
@@ -190,6 +246,10 @@ def on_connect(client, userdata, flags, rc):
 
 # Traiter données avec la gestion du flag pour l'enregistrement dans une BDD
 def traitement_donnee(list):
+    """! Fonction qui va Traiter les données avec la gestion du flag pour l'enregistrement dans une .
+    @param list Liste contenant les valeurs à enregistrers
+    @return rien
+    """
 
     # Liste qui contiendra les donnée à enregistrer dans la BDD
     global list_data_bdd # id_course, id_bateau, latitude, longitude, cap, vitesse, vitesse_vent, direction_vent, date
@@ -236,6 +296,13 @@ def traitement_donnee(list):
 
 # Decrypter le message et le traiter
 def on_message_test(client, userdata, msg):
+    """! Fonction qu'on appelle lorsqu'un message PUBLISH est reçu du serveur (Utilisé seulement pour les tests).
+         Elle va extraire et decoder la donnée puis l'enregistrer dans une base de donnée.
+    @param client Identité du client
+    @param userdata Données définies par l'utilisateur de tout type qui sont transmises en tant que paramètre userdata aux rappels
+    @param msg Contient la donnée
+    @return rien
+    """
     categorie = msg.topic
     message = msg.payload.decode("utf8")
 
@@ -291,6 +358,13 @@ def on_message_test(client, userdata, msg):
 
 # Fonction de "callback" quand un message est publié
 def on_message(client, userdata, msg):
+    """! Fonction qu'on appelle lorsqu'un message PUBLISH est reçu du serveur (Utilisé pour une utlisation réelle).
+        Elle va extraire et decoder la donnée puis l'enregistrer dans une base de donnée.
+    @param client Identité du client
+    @param userdata Données définies par l'utilisateur de tout type qui sont transmises en tant que paramètre userdata aux rappels
+    @param msg Contient la donnée
+    @return rien
+    """
     categorie = msg.topic
     message = msg.payload.decode("utf8")
 
@@ -350,6 +424,10 @@ def on_message(client, userdata, msg):
             logging.debug(f'Données lisible mais corrompu(crc invalide)...!')
 
 def recuperer_parametres(compteur = 1):
+    """! Fonction qui va récupérer les paramètres du fichier de conf pour tenter de les exploiters.Si il y a le moindre problèmes, il prendra la config par default.
+    @param compteur Variable qui possède une valeur par default et est utilisé pour faire de la recursion(Redemander à l'utlisateur de rentrer des valeurs correctes)
+    @return rien
+    """
     global ip
     global port
     global nom_bdd
@@ -407,14 +485,26 @@ def recuperer_parametres(compteur = 1):
             logging.debug(f'Fichier de configuration dans les normes!')
 
 def reception_trame(client):
+    """! Fonction qui va attendre qu'il y a un message de publier sur le serveur.
+    @param client Récupère l'identifiant du client qui envoi un message sur le serveur
+    @return rien
+    """
     client.on_connect = on_connect
 
 def reception_message(client):
+    """! Fonction qui va receptionner le message dans le paquet das qu'il y aura une activitée.
+    @param Identifiant client
+    @return rien
+    """
     client.on_message = on_message # vrai donnees
-    #client.on_message = on_message_test # fausse donnees(test..)
+    # client.on_message = on_message_test # fausses donnees(test..)
 
 # Recuperation argument pour travailler sur le fichier de configuration
 def demande_argument_conf():
+    """! Fonction qui va s'occuper de la Recuperation des arguments rentrer par l'utlisateur pour travailler sur le fichier de configuration.
+    @param aucun
+    @return rien
+    """
     global chemin_fichier_conf
     chemin_fichier_conf = input(f'Rentrer le chemin complet du fichier de configuration\n')
     if len(chemin_fichier_conf) != 0 and chemin_fichier_conf.strip():
@@ -425,6 +515,10 @@ def demande_argument_conf():
 
 # Création d'un client MQTT et attachement des fonctions de callback
 def main():
+    """! Fonction qui va lancer va créer un client mqtt et lancer le programme, Si jamais il ya la moindre erreurs au debut, il demandera à chaque fois de rentrer à nouveau le fichier de conf.
+    @param aucun
+    @return aucun
+    """
     try:
         logging.debug("INITIALISATION LANCE(En attente de connexion au broker...)")
         print(f'INITIALISATION LANCE(En attente de connexion au brocker...)')

@@ -46,5 +46,5 @@ void loop() {
     delay(100);
     compteur++;
 
-    if(compteur > 1){UNITY_END();}
+    if(compteur > 1000){UNITY_END();}
 }

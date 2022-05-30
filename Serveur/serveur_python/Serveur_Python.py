@@ -1,7 +1,7 @@
 """Serveur python qui récupèrent les messages de type lora/up, décodent les données utilent, utilisent et enregistrent les données dans une base de donnée.
 Usage:
 ======
-    python main.py 
+    python Serveur_Python.py 
 
 """
 

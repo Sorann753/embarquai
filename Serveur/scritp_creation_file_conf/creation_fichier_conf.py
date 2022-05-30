@@ -1,7 +1,7 @@
 """Programme qui va servir à générer un fichier de configuration avec le champ : ip, port, nom_bdd.
 Usage:
 ======
-    python main.py
+    python creation_fichier_conf.py
 """
 
 __authors__ = ("Loris Benaitier")

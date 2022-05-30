@@ -2,7 +2,7 @@
 
 Usage:
 ======
-    python main.py 
+    python Client_Python_test.py 
 
 """
 

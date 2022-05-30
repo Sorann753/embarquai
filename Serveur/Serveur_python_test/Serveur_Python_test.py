@@ -2,7 +2,7 @@
    lora/# -> Affiche tout ce qui vient de lora...
 Usage:
 ======
-    python main.py
+    python Serveur_Python_test.py
 """
 
 __authors__ = ("Loris Benaitier")

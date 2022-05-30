@@ -280,14 +280,15 @@ namespace navi{
      */
     void c_Navi::set_id_bateau(int32_t newId){
 
-        if(newId <= 0){
+        if(newId < 0){
             throw std::invalid_argument("id bateau invalide");
         }
 
         this->_data.id_bateau = newId;
     }
 
-
+    //TODO : utiliser Preferences.h pour enregistré les id_bateau et id_course dans la memoire flash
+    //#include <Preferences.h>
 
     /**
      * @brief change l'identifiant de la course a la quel participe le bateau
@@ -297,11 +298,31 @@ namespace navi{
      */
     void c_Navi::set_id_course(int32_t newId){
 
-        if(newId <= 0){
+        if(newId < 0){
             throw std::invalid_argument("id course invalide");
         }
 
         this->_data.id_course = newId;
+    }
+
+    /**
+     * @brief
+     * @param
+     * @return
+     */
+    int32_t c_Navi::get_id_bateau(){
+
+        return this->_data.id_bateau;
+    }
+
+    /**
+     * @brief
+     * @param
+     * @return 
+     */
+    int32_t c_Navi::get_id_course(){
+
+        return this->_data.id_course;
     }
 
 
@@ -312,9 +333,15 @@ namespace navi{
         if(this->_data.data_content == 0) return this->_data;
 
         data_navi poped_data = this->_data;
-        this->_data = data_navi{};
+        this->_data.data_content = 0;
 
         return poped_data;
+    }
+
+
+
+    data_navi c_Navi::get_data(){
+        return _data;
     }
 
     //on construit un objet Navi pour pouvoir l'utilisé de manière globale

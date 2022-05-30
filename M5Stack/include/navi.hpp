@@ -58,6 +58,20 @@ namespace navi{
          */
         void set_id_course(int32_t newId);
 
+        /**
+         * @brief
+         * @param
+         * @return
+         */
+        int32_t get_id_bateau();
+
+        /**
+         * @brief
+         * @param
+         * @return 
+         */
+        int32_t get_id_course();
+
 
 
         /**
@@ -66,6 +80,13 @@ namespace navi{
          * @return
          */
         [[nodiscard]] data_navi pop_data();
+
+        /**
+         * @brief
+         * @param
+         * @return
+         */
+        data_navi get_data();
 
     private:
 

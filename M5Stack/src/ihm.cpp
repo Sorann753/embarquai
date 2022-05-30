@@ -399,11 +399,11 @@ namespace ihm{
                 navi::data_navi data = Navi.get_data();
 
                 M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-96, 90, 15, 0);
-                M5.Lcd.drawFloat(data.WindAngle, 5, TOUCH_W - 50, TOUCH_H/2 - 90);
+                M5.Lcd.drawFloat(data.windAngle, 5, TOUCH_W - 50, TOUCH_H/2 - 90);
                 vTaskDelay(25 / portTICK_PERIOD_MS);
 
                 M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-66, 90, 15, 0);
-                M5.Lcd.drawNumber(data.WindSpeed, TOUCH_W - 50, TOUCH_H/2 - 60);
+                M5.Lcd.drawNumber(data.windSpeed, TOUCH_W - 50, TOUCH_H/2 - 60);
                 vTaskDelay(25 / portTICK_PERIOD_MS);
 
                 M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-36, 90, 15, 0);

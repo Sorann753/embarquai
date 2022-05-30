@@ -37,13 +37,13 @@ String lora::Traitement_flag_data(const navi::data_navi& data)
 
     if(data.data_content & navi::data_navi_content::WINDSPEED)
     {
-        message += String(data.WindSpeed, 2) + ";";
+        message += String(data.windSpeed, 2) + ";";
     }
 
     if(data.data_content & navi::data_navi_content::WINDANGLE)
     {
     
-        message += String(data.WindAngle, 2) + ";";
+        message += String(data.windAngle, 2) + ";";
     }
 
     //Formation de la data

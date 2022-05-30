@@ -140,19 +140,19 @@ namespace navi{
     void c_Navi::handleWind(const tN2kMsg& N2kMsg) noexcept{
     
         unsigned char messageIdentifier; // == SID
-        double WindSpeed = 0;
-        double WindAngle = 0;
+        double windSpeed = 0;
+        double windAngle = 0;
         tN2kWindReference windType;
 
-        if(ParseN2kWindSpeed(N2kMsg, messageIdentifier, WindSpeed, WindAngle, windType) ){
+        if(ParseN2kWindSpeed(N2kMsg, messageIdentifier, windSpeed, windAngle, windType) ){
 
-            if(!N2kIsNA(WindSpeed)){
-                this->_data.WindSpeed = WindSpeed;
+            if(!N2kIsNA(windSpeed)){
+                this->_data.windSpeed = windSpeed;
                 this->_data.data_content |= data_navi_content::WINDSPEED;
             }
 
-            if(!N2kIsNA(WindAngle)){
-                this->_data.WindAngle = WindAngle;
+            if(!N2kIsNA(windAngle)){
+                this->_data.windAngle = windAngle;
                 this->_data.data_content |= data_navi_content::WINDANGLE;
             }
         }

@@ -17,8 +17,8 @@ namespace navi{
         float speed = 0;
         float latitude = 0;
         float longitude = 0;
-        float WindSpeed = 0;
-        float WindAngle = 0;
+        float windSpeed = 0;
+        float windAngle = 0;
         
 
         //flags pour indiquer le contenue valide de la data

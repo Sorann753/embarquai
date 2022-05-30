@@ -166,8 +166,8 @@ def xor(a, b):
 # Effectue la division Modulo-2
 def mod2div(divident, divisor):
     """! Fonction qui Effectue la division Modulo-2.
-    @param divident Une des composantes sur la quelle on faire un Modulo-2 
-    @param divisor Une des composantes sur la quelle on faire un Modulo-2
+    @param divident Une des composantes sur la quelle on va faire un Modulo-2 
+    @param divisor Une des composantes sur la quelle on va faire un Modulo-2
     @return Variable Resultat du Modulo-2
     """
     # Nombre de bits ou on doit appliquer le XOR.

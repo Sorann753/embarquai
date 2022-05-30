@@ -47,5 +47,6 @@ Les grandes étapes du fonctionnement de l'application web
 ## 4 - Ce qu'il reste à faire
 Liste de ce qu'il reste à faire :
 - [ ] vérifier que le code est compatible avec la bdd existante
+- [ ] téléverser le code sur le github du projet
 - [ ] créer un token d'accès à l'API mapbox
 - [ ] remplacer le bouton par un timer

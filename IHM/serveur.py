@@ -71,7 +71,7 @@ def recuperer_positions():
 
     # Préparation et exécution de la requête SQL
     resultat = curseur.execute("""
-        SELECT Position.latitude, Position.longitude, Position.date, Bateau.id, Bateau.nom
+        SELECT Position.latitude, Position.longitude, Position.cap, Position.vitesse, Position.vitesse_vent, Position.direction_vent, Position.date, Bateau.id, Bateau.nom
         FROM Position
         INNER JOIN Bateau ON Position.id_bateau_fk = Bateau.id
         WHERE Position.id_course_fk = ?
@@ -91,19 +91,25 @@ def recuperer_positions():
     print(bateaux)
     """
     # Mise en forme des résultats (version 2)
-    bateaux = {}
+    bateaux = {}    
     for ligne in resultat:        
         print(ligne)
         #print(f"latitude={ligne[1]}, longitude={ligne[2]}")
-        if ligne[4] not in bateaux.keys():
-            bateaux[ligne[4]] = {}
-            bateaux[ligne[4]]["id"] = ligne[3]
-            bateaux[ligne[4]]["nom"] = ligne[4]
-            bateaux[ligne[4]]["positions"] = []
+        if ligne[8] not in bateaux.keys():
+            bateaux[ligne[8]] = {}
+            bateaux[ligne[8]]["id"] = ligne[7]
+            bateaux[ligne[8]]["nom"] = ligne[8]
+            bateaux[ligne[8]]["positions"] = []
+            bateaux[ligne[8]]["caps"] = []
+            bateaux[ligne[8]]["vitesses"] = []
+            bateaux[ligne[8]]["vents"] = []
             
-        bateaux[ligne[4]]["positions"].append( (ligne[0], ligne[1]) )
-    print(bateaux)
+        bateaux[ligne[8]]["positions"].append( (ligne[0], ligne[1]) )
+        bateaux[ligne[8]]["caps"].append( ligne[2] )
+        bateaux[ligne[8]]["vitesses"].append( ligne[3] )
+        bateaux[ligne[8]]["vents"].append( (ligne[4], ligne[5]) )
 
+    print(bateaux)
 
     # Déconnexion de la base de données
     connexion.close()

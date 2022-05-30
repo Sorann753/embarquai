@@ -111,6 +111,14 @@
 					//console.log(bateaux[element.id]["cercle"]);
 					bateaux[element.id]["cercle"].setLatLng(element.positions[element.positions.length-1]);
 					bateaux[element.id]["chemin"].setLatLngs(element.positions);
+					let informations = "<strong>" + element.nom + "</strong>";
+					informations += "<ul>";
+					informations += "<li>bateau cap : " + element.caps[element.caps.length-1] + " °</li>";
+					informations += "<li>bateau vitesse : " + element.vitesses[element.vitesses.length-1] + " m/s</li>";
+					informations += "<li>vent direction : " + element.vents[element.vents.length-1][1] + " °</li>";
+					informations += "<li>vent vitesse: " + element.vents[element.vents.length-1][0] + " m/s</li>";
+					informations += "</ul>";
+					bateaux[element.id]["cercle"]._popup.setContent(informations);
 				});
 			});	
 		

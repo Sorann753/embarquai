@@ -403,11 +403,11 @@ namespace ihm{
                 vTaskDelay(25 / portTICK_PERIOD_MS);
 
                 M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-66, 90, 15, 0);
-                M5.Lcd.drawNumber(data.windSpeed, TOUCH_W - 50, TOUCH_H/2 - 60);
+                M5.Lcd.drawFloat(data.windSpeed, 5, TOUCH_W - 50, TOUCH_H/2 - 60);
                 vTaskDelay(25 / portTICK_PERIOD_MS);
 
                 M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-36, 90, 15, 0);
-                M5.Lcd.drawNumber(data.speed, TOUCH_W - 50, TOUCH_H/2 - 30);
+                M5.Lcd.drawFloat(data.speed, 5, TOUCH_W - 50, TOUCH_H/2 - 30);
                 vTaskDelay(25 / portTICK_PERIOD_MS);
 
                 M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-6, 90, 15, 0);

@@ -228,7 +228,7 @@ namespace navi{
             break;
 
             case 128259:
-                handleBoatSpeed(NmeaMessage);
+                this->handleBoatSpeed(NmeaMessage);
             break;
 
             case 129025L:

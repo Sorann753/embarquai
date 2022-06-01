@@ -14,15 +14,20 @@
 #include "fonction_send_lora.h"
 #include "ihm.hpp"
 
+//TODO : finir les commentaires doxygen 
 
-
+/**
+ * @brief tache freeRTOS qui sert a envoyé 
+ * @param void* un faux paramètre pour pouvoir ce servir de cette fonction dans une task freeRTOS
+ * @return rien
+ */ 
 void loop_led(void*){
 
     static bool led_state = 1;
     while(true){
         M5.Axp.SetLed(led_state);
         led_state = !led_state;
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS); //met en pause la tache et laisse le processeur pour d'autres taches
         M5.Axp.SetLed(led_state);
         led_state = !led_state;
 
@@ -30,6 +35,11 @@ void loop_led(void*){
     }
 }
 
+/**
+ * @brief tache pour freeRTOS qui sert a envoyé les données Navi avec le module Lorawan
+ * @param void* un faux paramètre pour pouvoir ce servir de cette fonction dans une task freeRTOS
+ * @return rien
+ */
 void send_with_lora(void*){
 
     while(true){
@@ -46,6 +56,11 @@ void send_with_lora(void*){
 
 
 
+/**
+ * @brief la fonction d'initialisation du programme
+ * @param rien
+ * @return rien
+ */
 void setup() {
 
     M5.begin(true, false);
@@ -55,25 +70,21 @@ void setup() {
     lora::init();
     ihm::init();
 
+    //damare des taches FreeRTOS
     xTaskCreate(loop_led, "BLINKING", 2048, NULL, 1, NULL);
     xTaskCreate(send_with_lora, "SEND LORA", 4096, NULL, 3, NULL);
 }
 
 static uint64_t loop_counter = 0;
+/**
+ * @brief la boucle d'execution du programme
+ * @param rien
+ * @return rien
+ */
 void loop() {
 
     Navi.fetch_nmea_data();
     M5.update();
-
-    // if(currentScreen == screens::HOME){
-    //     if(loop_counter % 100 == 0){
-    //        M5.Lcd.fillRect(TOUCH_W / 2 - 49, TOUCH_H/2 - 6, 100, 14, 0);
-    //        M5.Lcd.drawString(String((int)loop_counter/100).c_str(), TOUCH_W / 2, TOUCH_H/2 + 30);
-    //     }
-    //     M5.Lcd.progressBar(TOUCH_W / 2 - 50, TOUCH_H/2 - 7, 100, 15, loop_counter%100);
-    // }
-
-    
 
     //affiche un . de temps en temps pour être sure que le M5stack fonctionne bien
     if(loop_counter % 1000 == 0){

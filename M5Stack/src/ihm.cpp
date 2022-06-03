@@ -82,16 +82,26 @@ namespace ihm{
 
 
 
-
-
     uint8_t currentScreen;
 
+
+
+    /**
+     * @brief fonction pour cacher l'écran HOME
+     * @param rien
+     * @return rien
+     */
     void hideHomeScreen(){
 
         boutonConfig.hide();
         M5.lcd.clear();
     }
 
+    /**
+     * @brief fonction pour afficher l'écran HOME
+     * @param rien
+     * @return rien
+     */
     void drawHomeScreen(){
 
         boutonConfig.draw();
@@ -114,6 +124,13 @@ namespace ihm{
         currentScreen = screens::HOME;
     }
 
+
+
+    /**
+     * @brief fonction pour cacher l'écran CONFIG
+     * @param rien
+     * @return rien
+     */
     void hideConfigScreen(){
 
         boutonHome.hide();
@@ -122,6 +139,11 @@ namespace ihm{
         M5.Lcd.clear();
     }
 
+    /**
+     * @brief fonction pour afficher l'écran CONFIG
+     * @param rien
+     * @return rien
+     */
     void drawConfigScreen(){
 
         boutonHome.draw();
@@ -131,6 +153,13 @@ namespace ihm{
         currentScreen = screens::CONFIG;
     }
 
+
+
+    /**
+     * @brief fonction pour cacher l'écran ID BATEAU
+     * @param rien
+     * @return rien
+     */
     void hideIdBateauScreen(){
 
         boutonCancelId.hide();
@@ -150,6 +179,11 @@ namespace ihm{
         M5.Lcd.clear();
     }
 
+    /**
+     * @brief fonction pour afficher l'écran ID BATEAU
+     * @param rien
+     * @return rien
+     */
     void drawIdBateauScreen(){
 
         boutonCancelId.draw();
@@ -175,6 +209,13 @@ namespace ihm{
         currentScreen = screens::SET_ID_BATEAU;
     }
 
+
+
+    /**
+     * @brief fonction pour cacher l'écran ID COURSE
+     * @param rien
+     * @return rien
+     */
     void hideIdCourseScreen(){
 
         boutonCancelId.hide();
@@ -194,6 +235,11 @@ namespace ihm{
         M5.Lcd.clear();
     }
 
+    /**
+     * @brief fonction pour afficher l'écran ID COURSE
+     * @param rien
+     * @return rien
+     */
     void drawIdCourseScreen(){
 
         boutonCancelId.draw();
@@ -224,6 +270,11 @@ namespace ihm{
 
 
     static String inputBuffer = "";
+    /**
+     * @brief fonction pour afficher ce que l'utilisateur est entrain d'écrire
+     * @param rien
+     * @return rien
+     */
     void drawBuffer(){
 
         M5.Lcd.setTextSize(2);
@@ -232,7 +283,14 @@ namespace ihm{
         M5.Lcd.setTextSize(1);
     }
 
+
+
     static bool isInit = false;
+    /**
+     * @brief fonction pour initialiser l'ihm
+     * @param rien
+     * @return rien
+     */
     void init(){
 
         if(isInit) return;
@@ -412,7 +470,11 @@ namespace ihm{
     }
 
 
-
+    /**
+     * @brief fonction pour mettre a jours les données sur l'écran HOME
+     * @param void* un faux paramètre pour pouvoir ce servir de cette fonction dans une task freeRTOS
+     * @return rien
+     */
     void updateHomeScreen(void*){
 
         while(true){

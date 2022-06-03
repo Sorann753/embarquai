@@ -17,6 +17,7 @@
 #include <NMEA2000.h>
 #include <N2kMessages.h>
 #include "data_navi.hpp"
+#include <Preferences.h>
 
 
 
@@ -92,6 +93,9 @@ namespace navi{
 
         //dernières données qui n'ont pas encore été envoyées
         data_navi _data{};
+
+        //interface avec la mémoire flash
+        Preferences _preferences;
 
         //fonctions privés
         void handleHeading(const tN2kMsg& N2kMsg) noexcept; // 127250L

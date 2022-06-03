@@ -13,9 +13,9 @@ namespace navi{
     bool started = false;
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui extrait le cap du bateau
+    * @param N2kMsg un message NMEA2000
+    * @return rien
     */
     void c_Navi::handleHeading(const tN2kMsg& N2kMsg) noexcept{
     
@@ -38,9 +38,9 @@ namespace navi{
 
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui extrait la vitesse du bateau
+    * @param N2kMsg un message NMEA2000
+    * @return rien
     */
     void c_Navi::handleBoatSpeed(const tN2kMsg& N2kMsg) noexcept{
 
@@ -64,9 +64,9 @@ namespace navi{
 
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui extrait les information de position et les enregistre
+    * @param N2kMsg un message NMEA2000
+    * @return rien
     */
     void c_Navi::handlePosition(const tN2kMsg& N2kMsg) noexcept{
     
@@ -90,9 +90,10 @@ namespace navi{
 
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui utilise le COG SOG pour récupéré les informations de vitesse et de cap si celles-ci ne sont
+    * pas récupéré autrement, permet de quand même avoir une vitesse même si le capteur de vitesse n'est pas installé
+    * @param N2kMsg un message NMEA2000
+    * @return rien
     */
     void c_Navi::handleCogSog(const tN2kMsg& N2kMsg) noexcept{
     
@@ -102,40 +103,30 @@ namespace navi{
         double SOG = 0; // Speed Over Ground (peut remplacé la speed_to_water)
         if(ParseN2kCOGSOGRapid(N2kMsg, messageIdentifier, headingType, COG, SOG) ){
 
-            //TODO faire en sorte que le COG SOG puisse remplacé la vitesse si besoin
-            // switch (headingType){
-            //     case tN2kHeadingReference::N2khr_error :
-            //         Serial.println("Error : heading type error");
-            //     break;
+            //on utilise le COG pour remplacer le heading si celui-ci est manquant
+            if(!(_data.data_content & navi::data_navi_content::HEADING)){            
+                if(!N2kIsNA(COG)){
+                    this->_data.heading = COG;
+                    this->_data.data_content |= navi::data_navi_content::HEADING;
+                }
+            }
 
-            //     case tN2kHeadingReference::N2khr_magnetic :
-            //         Serial.println("orientation based on the magnetic north");
-            //     break;
-
-            //     case tN2kHeadingReference::N2khr_true :
-            //         Serial.println("orientation based on the true north");
-            //     break;
-
-            //     case tN2kHeadingReference::N2khr_Unavailable :
-            //         Serial.println("can't get heading type");
-            //     break;
-            // }
-
-            // Serial.print("Course over ground : ");
-            // Serial.println(COG);
-
-            // Serial.print("Speed over ground : ");
-            // Serial.println(SOG);
+            //on utilise la SOG pour remplacer la speed si celle-ci est manquante
+            if(!(_data.data_content & navi::data_navi_content::SPEED)){
+                if(!N2kIsNA(SOG)){
+                    this->_data.speed = SOG;
+                    this->_data.data_content |= navi::data_navi_content::SPEED;
+                }
+            }
         }
-        // Serial.println();
     }
 
 
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui extrait les données du vent
+    * @param N2kMsg un message NMEA2000
+    * @return rien
     */
     void c_Navi::handleWind(const tN2kMsg& N2kMsg) noexcept{
     
@@ -161,14 +152,21 @@ namespace navi{
 
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui démarre la lecture des messages NMEA2000
+    * @param rien
+    * @return rien
     */
     void c_Navi::begin(){
     
         //s'assure qu'on n'ai pas déjà appelé begin
-        if(started) return;
+        if(started) return;  
+
+        //on initialise l'interface avec la mémoire flash
+        _preferences.begin("navi", false);
+
+        //récupère les id depuis la mémoire flash
+        _data.id_bateau = _preferences.getInt("id_bateau", -1);
+        _data.id_course = _preferences.getInt("id_course", -1);
 
         NMEA2000.EnableForward(false);
         NMEA2000.SetMsgHandler([](const tN2kMsg &N2kMsg){
@@ -188,9 +186,9 @@ namespace navi{
 
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui demande a l'objet NMEA2000 de parser les messages NMEA2000
+    * @param rien
+    * @return rien
     */
     void c_Navi::fetch_nmea_data(){
 
@@ -202,9 +200,9 @@ namespace navi{
 
 
     /**
-    * @brief 
-    * @param 
-    * @return 
+    * @brief méthode qui décide quel handler utiliser pour parser le message NMEA2000
+    * @param NmeaMessage un message NMEA2000
+    * @return rien
     */
     void c_Navi::handle(const tN2kMsg &NmeaMessage){
     
@@ -285,10 +283,10 @@ namespace navi{
         }
 
         this->_data.id_bateau = newId;
-    }
 
-    //TODO : utiliser Preferences.h pour enregistré les id_bateau et id_course dans la memoire flash
-    //#include <Preferences.h>
+        //enregistre le nouvel id bateau dans la mémoire flash
+        _preferences.putInt("id_bateau", newId);
+    }
 
     /**
      * @brief change l'identifiant de la course a la quel participe le bateau
@@ -303,26 +301,37 @@ namespace navi{
         }
 
         this->_data.id_course = newId;
+
+        //enregistre le nouvel id course dans la memoire flash
+        _preferences.putInt("id_course", newId);
     }
 
     /**
-     * @brief
-     * @param
-     * @return
+     * @brief récupère l'identifiant du bateau
+     * @param rien
+     * @return l'identifiant du bateau
      */
     int32_t c_Navi::get_id_bateau(){
 
-        return this->_data.id_bateau;
+        if(_data.id_bateau == -1){
+            _data.id_bateau = _preferences.getInt("id_bateau", -1);
+        }
+
+        return _data.id_bateau;
     }
 
     /**
-     * @brief
-     * @param
-     * @return 
+     * @brief récupère l'identifiant de la course
+     * @param rien
+     * @return l'identifiant de la course
      */
     int32_t c_Navi::get_id_course(){
 
-        return this->_data.id_course;
+        if(_data.id_course == -1){
+            _data.id_course = _preferences.getInt("id_course", -1);
+        }
+
+        return _data.id_course;
     }
 
 

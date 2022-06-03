@@ -4,8 +4,15 @@ namespace ihm{
 
     image img_config{jpg_config, 5986};
     image img_config_touched{jpg_config_touched, 5115};
+
     image img_boat{jpg_boat, 5523};
     image img_boat_touched{jpg_boat_touched, 5247};
+
+    image img_confirm{jpg_confirm, 4281};
+    image img_confirm_touched{jpg_confirm_touched, 3690};
+
+    image img_cancel{jpg_cancel, 4381};
+    image img_cancel_touched{jpg_cancel_touched, 3881};
 
 
 
@@ -15,20 +22,20 @@ namespace ihm{
     Button boutonHome(TOUCH_W - 50, 0, 50, 50, false, "HOME",
                 INVISIBLE, INVISIBLE);
 
-    Button boutonIdBateau(TOUCH_W - 250, TOUCH_H - 135, 200, 50, false, "ID BATEAU",
+    Button boutonIdBateau(TOUCH_W - 250, TOUCH_H - 215, 200, 50, false, "ID BATEAU",
                 {BLACK, MY_ORANGE, MY_ORANGE}, {MY_ORANGE, BLACK, MY_ORANGE});
 
-    Button boutonIdCourse(TOUCH_W - 250, TOUCH_H - 215, 200, 50, false, "ID COURSE",
+    Button boutonIdCourse(TOUCH_W - 250, TOUCH_H - 135, 200, 50, false, "ID COURSE",
                 {BLACK, MY_ORANGE, MY_ORANGE}, {MY_ORANGE, BLACK, MY_ORANGE});
 
     Button boutonConfirmIdBateau(TOUCH_W - 50, 0, 50, 50, false, "CONFIRM BATEAU",
-                    {BLACK, MY_ORANGE, MY_ORANGE}, {MY_ORANGE, BLACK, MY_ORANGE});
+                    INVISIBLE, INVISIBLE);
 
     Button boutonConfirmIdCourse(TOUCH_W - 50, 0, 50, 50, false, "CONFIRM COURSE",
-                    {BLACK, MY_ORANGE, MY_ORANGE}, {MY_ORANGE, BLACK, MY_ORANGE});
+                    INVISIBLE, INVISIBLE);
 
     Button boutonCancelId(0, 0, 50, 50, false, "CANCEL ID",
-                    {BLACK, MY_ORANGE, MY_ORANGE}, {MY_ORANGE, BLACK, MY_ORANGE});
+                    INVISIBLE, INVISIBLE);
 
 
 
@@ -146,7 +153,10 @@ namespace ihm{
     void drawIdBateauScreen(){
 
         boutonCancelId.draw();
+        M5.Lcd.drawJpg(img_cancel.img, img_cancel.size, boutonCancelId.x, boutonCancelId.y, 0,0,0,0, JPEG_DIV_2);
+
         boutonConfirmIdBateau.draw();
+        M5.Lcd.drawJpg(img_confirm.img, img_confirm.size, boutonConfirmIdBateau.x, boutonConfirmIdBateau.y, 0,0,0,0, JPEG_DIV_2);
 
         M5.Lcd.drawRoundRect(TOUCH_W/2 - 55, TOUCH_H/2 - 75, 200, 50, 10, MY_ORANGE);
         M5.Lcd.drawString("NOUVEL ID", TOUCH_W/2 - 110, TOUCH_H/2 - 50);
@@ -187,7 +197,10 @@ namespace ihm{
     void drawIdCourseScreen(){
 
         boutonCancelId.draw();
+        M5.Lcd.drawJpg(img_cancel.img, img_cancel.size, boutonCancelId.x, boutonCancelId.y, 0,0,0,0, JPEG_DIV_2);
+
         boutonConfirmIdCourse.draw();
+        M5.Lcd.drawJpg(img_confirm.img, img_confirm.size, boutonConfirmIdCourse.x, boutonConfirmIdCourse.y, 0,0,0,0, JPEG_DIV_2);
 
         M5.Lcd.drawRoundRect(TOUCH_W/2 - 55, TOUCH_H/2 - 75, 200, 50, 10, MY_ORANGE);
         M5.Lcd.drawString("NOUVEL ID", TOUCH_W/2 - 110, TOUCH_H/2 - 50);
@@ -259,6 +272,9 @@ namespace ihm{
 
 
         boutonConfirmIdBateau.addHandler([](Event& e){
+            M5.Lcd.drawJpg(img_confirm_touched.img, img_confirm_touched.size, boutonConfirmIdBateau.x, boutonConfirmIdBateau.y, 0,0,0,0, JPEG_DIV_2);
+        }, E_TOUCH);
+        boutonConfirmIdBateau.addHandler([](Event& e){
                 if(!inputBuffer.isEmpty()){
                     Navi.set_id_bateau(inputBuffer.toInt());
                     inputBuffer = "";
@@ -270,6 +286,9 @@ namespace ihm{
 
 
         boutonConfirmIdCourse.addHandler([](Event& e){
+            M5.Lcd.drawJpg(img_confirm_touched.img, img_confirm_touched.size, boutonConfirmIdCourse.x, boutonConfirmIdCourse.y, 0,0,0,0, JPEG_DIV_2);
+        }, E_TOUCH);
+        boutonConfirmIdCourse.addHandler([](Event& e){
             if(!inputBuffer.isEmpty()){
                 Navi.set_id_course(inputBuffer.toInt());
                 inputBuffer = "";
@@ -280,6 +299,9 @@ namespace ihm{
         }, E_RELEASE);
 
 
+        boutonCancelId.addHandler([](Event& e){
+            M5.lcd.drawJpg(img_cancel_touched.img, img_cancel_touched.size, boutonCancelId.x, boutonCancelId.y, 0,0,0,0, JPEG_DIV_2);
+        }, E_TOUCH);
         boutonCancelId.addHandler([](Event& e){
             inputBuffer = "";
 

@@ -8,6 +8,10 @@ extern const unsigned char jpg_config[5986];
 extern const unsigned char jpg_config_touched[5115];
 extern const unsigned char jpg_boat[5523];
 extern const unsigned char jpg_boat_touched[5247];
+extern const unsigned char jpg_confirm[4281];
+extern const unsigned char jpg_confirm_touched[3690];
+extern const unsigned char jpg_cancel[4381];
+extern const unsigned char jpg_cancel_touched[3881];
 
 namespace ihm{
 

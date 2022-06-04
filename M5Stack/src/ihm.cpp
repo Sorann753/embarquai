@@ -82,6 +82,7 @@ namespace ihm{
 
 
 
+    //une variable pour stocker l'écran actuel
     uint8_t currentScreen;
 
 

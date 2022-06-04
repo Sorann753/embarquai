@@ -8,7 +8,7 @@
 *@param : void
 *@return: void
 */
-void test_gen_number()
+inline void test_gen_number()
 {
     //Ajout valeurs generées par les fonctions dans tableau pour le test
     std::array<float, 10> tab;
@@ -40,7 +40,7 @@ void test_gen_number()
 *@param : void
 *@return: void
 */
-void test_gen_letter()
+inline void test_gen_letter()
 {
     //Ajout valeurs generées par les fonctions dans tableau pour le test
     std::array<String, 10> tab;
@@ -85,7 +85,7 @@ void test_gen_letter()
 *@param : void
 *@return: void
 */
-void test_gen_string()
+inline void test_gen_string()
 {
     //Creation tableau
     std::array<float, 10> tab;

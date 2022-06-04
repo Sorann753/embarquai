@@ -17,7 +17,7 @@
 //TODO : finir les commentaires doxygen 
 
 /**
- * @brief tache freeRTOS qui sert a envoyé 
+ * @brief tache freeRTOS qui sert a faire clignoter la led
  * @param void* un faux paramètre pour pouvoir ce servir de cette fonction dans une task freeRTOS
  * @return rien
  */ 
@@ -76,6 +76,7 @@ void setup() {
 }
 
 static uint64_t loop_counter = 0;
+
 /**
  * @brief la boucle d'execution du programme
  * @param rien

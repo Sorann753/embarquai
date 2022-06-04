@@ -336,6 +336,11 @@ namespace navi{
 
 
 
+    /**
+     * @brief extrait les données de _data et réinitialise data_content
+     * @param rien
+     * @return un objet data_content
+     */
     [[nodiscard]] data_navi c_Navi::pop_data(){
 
         //si il n'y a pas de données alors on ne s'embête pas a réinitialisé _data
@@ -349,6 +354,11 @@ namespace navi{
 
 
 
+    /**
+     * @brief récupère les données du bateau
+     * @param rien
+     * @return un objet data_content
+     */
     data_navi c_Navi::get_data(){
         return _data;
     }

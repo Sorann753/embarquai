@@ -13,12 +13,12 @@ namespace navi{
         int32_t id_bateau = -1;
         int32_t id_course = -1;
 
-        float heading = 0.0f;
-        float speed = 0.0f;
-        float latitude = 0.0f;
-        float longitude = 0.0f;
-        float windSpeed = 0.0f;
-        float windAngle = 0.0f;
+        float   heading   = 0.0f;
+        float   speed     = 0.0f;
+        float   latitude  = 0.0f;
+        float   longitude = 0.0f;
+        float   windSpeed = 0.0f;
+        float   windAngle = 0.0f;
         
 
         //flags pour indiquer le contenue valide de la data

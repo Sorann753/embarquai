@@ -86,6 +86,67 @@ namespace ihm{
     uint8_t currentScreen;
 
 
+    bool M5LCDGuard::isInit = false;
+    size_t M5LCDGuard::nbInstances = 0;
+    pthread_mutex_t M5LCDGuard::lcdMutex;
+    pthread_mutex_t M5LCDGuard::counterMutex;
+
+    M5LCDGuard::M5LCDGuard() : M5Lcd(M5.Lcd) {
+        if(!M5LCDGuard::isInit) {
+            Serial.println("ERROR : LCD LOCK NOT INITIALIZED BUT CONSTRUCTED, UNDEFINED BEHAVIOR !!!");
+        }
+
+        pthread_mutex_lock(&this->counterMutex);
+        this->nbInstances++;
+        pthread_mutex_unlock(&this->counterMutex);
+        pthread_mutex_lock(&this->lcdMutex); // stop other thread from fully instantiating this class
+    }
+
+    // calling this function in a concurrent context is UB
+    // creating an instance of M5LCDGuard before calling this function is also UB
+    void M5LCDGuard::init() {
+        if(!M5LCDGuard::isInit){
+            pthread_mutex_init(&lcdMutex, NULL);
+            pthread_mutex_init(&counterMutex, NULL);
+            
+            nbInstances = 0;
+            M5LCDGuard::isInit = true;
+        }
+    }
+
+    void M5LCDGuard::destroy() {
+        pthread_mutex_lock(&counterMutex);
+
+        if(nbInstances > 0) {
+            // abort destroy if there are still instances of M5LCDGuard alive
+            pthread_mutex_unlock(&counterMutex);
+            return;
+        }
+
+        pthread_mutex_lock(&lcdMutex);
+        pthread_mutex_unlock(&lcdMutex);
+        pthread_mutex_destroy(&lcdMutex);
+        
+        pthread_mutex_unlock(&counterMutex);
+        pthread_mutex_destroy(&counterMutex);
+        M5LCDGuard::isInit = false;
+    }
+
+    M5LCDGuard::~M5LCDGuard() {
+        pthread_mutex_lock(&this->counterMutex);
+        pthread_mutex_unlock(&this->lcdMutex);
+        this->nbInstances--;
+        pthread_mutex_unlock(&this->counterMutex);
+    }
+
+    M5Display& M5LCDGuard::getLcd() {
+        // to run this method we need an object M5LCDGuard
+        // and to construct this object we have to lock the mutex
+        // thus using this reference to access the lcd makes it thread safe
+        return this->M5Lcd;
+    }
+
+
 
     /**
      * @brief fonction pour cacher l'écran HOME
@@ -93,9 +154,14 @@ namespace ihm{
      * @return rien
      */
     void hideHomeScreen(){
-
-        boutonConfig.hide();
-        M5.lcd.clear();
+        currentScreen = screens::NONE;
+        { //lifetime for the lcd lock
+            M5LCDGuard LcdGuard;
+            M5Display& LcdDisplay = LcdGuard.getLcd();
+            boutonConfig.hide();
+            LcdDisplay.clear();
+        }
+        M5LCDGuard::destroy();
     }
 
     /**
@@ -122,6 +188,14 @@ namespace ihm{
         M5.Lcd.drawString("Longitude", TOUCH_W/2, TOUCH_H/2 + 30);
         M5.Lcd.drawString("Cap", TOUCH_W/2, TOUCH_H/2 + 60);
 
+        M5.Lcd.drawFloat(0.0f, 5, TOUCH_W - 50, TOUCH_H/2 - 90);
+        M5.Lcd.drawFloat(0.0f, 5, TOUCH_W - 50, TOUCH_H/2 - 60);
+        M5.Lcd.drawFloat(0.0f, 5, TOUCH_W - 50, TOUCH_H/2 - 30);
+        M5.Lcd.drawFloat(0.0f, 5, TOUCH_W - 50, TOUCH_H/2);
+        M5.Lcd.drawFloat(0.0f, 5, TOUCH_W - 50, TOUCH_H/2 + 30);
+        M5.Lcd.drawFloat(0.0f, 5, TOUCH_W - 50, TOUCH_H/2 + 60);
+
+        M5LCDGuard::init();
         currentScreen = screens::HOME;
     }
 
@@ -133,7 +207,7 @@ namespace ihm{
      * @return rien
      */
     void hideConfigScreen(){
-
+        currentScreen = screens::NONE;
         boutonHome.hide();
         boutonIdBateau.hide();
         boutonIdCourse.hide();
@@ -163,6 +237,7 @@ namespace ihm{
      */
     void hideIdBateauScreen(){
 
+        currentScreen = screens::NONE;
         boutonCancelId.hide();
         boutonConfirmIdBateau.hide();
 
@@ -219,6 +294,7 @@ namespace ihm{
      */
     void hideIdCourseScreen(){
 
+        currentScreen = screens::NONE;
         boutonCancelId.hide();
         boutonConfirmIdCourse.hide();
 
@@ -297,9 +373,12 @@ namespace ihm{
         if(isInit) return;
 
         M5.Lcd.setTextColor(MY_ORANGE);
+        M5LCDGuard::init();
 
         boutonConfig.addHandler([](Event& e){
-            M5.lcd.drawJpg(img_config_touched.img, img_config_touched.size, boutonConfig.x, boutonConfig.y, 0,0,0,0, JPEG_DIV_2);
+            M5LCDGuard LcdGuard;
+            M5Display& LcdDisplay = LcdGuard.getLcd();
+            LcdDisplay.drawJpg(img_config_touched.img, img_config_touched.size, boutonConfig.x, boutonConfig.y, 0,0,0,0, JPEG_DIV_2);
         }, E_TOUCH);
         boutonConfig.addHandler([](Event& e){
             hideHomeScreen();
@@ -330,6 +409,7 @@ namespace ihm{
         }, E_RELEASE);
 
 
+        // TODO : il est possible de fusionner les deux écran de changement d'id en un seul écran générique
         boutonConfirmIdBateau.addHandler([](Event& e){
             M5.Lcd.drawJpg(img_confirm_touched.img, img_confirm_touched.size, boutonConfirmIdBateau.x, boutonConfirmIdBateau.y, 0,0,0,0, JPEG_DIV_2);
         }, E_TOUCH);
@@ -464,7 +544,7 @@ namespace ihm{
         //on démare l'ihm sur l'écran principale
         drawHomeScreen();
 
-        xTaskCreate(updateHomeScreen, "UPDATE DATA", 4096, NULL, 0, NULL);
+        xTaskCreate(updateHomeScreen, "UPDATE DATA", 4096, NULL, 3, NULL);
 
         isInit = true;
         Serial.println("IHM STARTED");
@@ -478,38 +558,50 @@ namespace ihm{
      */
     void updateHomeScreen(void*){
 
+        constexpr int update_delay = 500; // ms
         while(true){
             if(currentScreen == screens::HOME){
-
                 navi::data_navi data = Navi.get_data();
+                if(data.data_content == 0) { // no new data to display
+                    vTaskDelay(update_delay / portTICK_PERIOD_MS);
+                    continue;
+                }
 
-                M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-96, 90, 15, 0);
-                M5.Lcd.drawFloat(data.windAngle, 5, TOUCH_W - 50, TOUCH_H/2 - 90);
-                vTaskDelay(25 / portTICK_PERIOD_MS);
+                M5LCDGuard lcdGuard;
+                M5Display& LcdDisplay = lcdGuard.getLcd();
 
-                M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-66, 90, 15, 0);
-                M5.Lcd.drawFloat(data.windSpeed, 5, TOUCH_W - 50, TOUCH_H/2 - 60);
-                vTaskDelay(25 / portTICK_PERIOD_MS);
+                if(data.data_content & navi::data_navi_content::WINDANGLE) {
+                    M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-96, 90, 15, 0);
+                    LcdDisplay.drawFloat(data.windAngle, 5, TOUCH_W - 50, TOUCH_H/2 - 90);
+                }
 
-                M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-36, 90, 15, 0);
-                M5.Lcd.drawFloat(data.speed, 5, TOUCH_W - 50, TOUCH_H/2 - 30);
-                vTaskDelay(25 / portTICK_PERIOD_MS);
+                if(data.data_content & navi::data_navi_content::WINDSPEED) {
+                    M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-66, 90, 15, 0);
+                    LcdDisplay.drawFloat(data.windSpeed, 5, TOUCH_W - 50, TOUCH_H/2 - 60);
+                }
 
-                M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-6, 90, 15, 0);
-                M5.Lcd.drawFloat(data.latitude, 5, TOUCH_W - 50, TOUCH_H/2);
-                vTaskDelay(25 / portTICK_PERIOD_MS);
+                if(data.data_content & navi::data_navi_content::SPEED) {
+                    M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-36, 90, 15, 0);
+                    LcdDisplay.drawFloat(data.speed, 5, TOUCH_W - 50, TOUCH_H/2 - 30);
+                }
 
-                M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2+24, 90, 15, 0);
-                M5.Lcd.drawFloat(data.longitude, 5, TOUCH_W - 50, TOUCH_H/2 + 30);
-                vTaskDelay(25 / portTICK_PERIOD_MS);
+                if(data.data_content & navi::data_navi_content::LATITUDE) {
+                    M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2-6, 90, 15, 0);
+                    LcdDisplay.drawFloat(data.latitude, 5, TOUCH_W - 50, TOUCH_H/2);
+                }
 
+                if(data.data_content & navi::data_navi_content::LONGITUDE) {
+                    M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2+24, 90, 15, 0);
+                    LcdDisplay.drawFloat(data.longitude, 5, TOUCH_W - 50, TOUCH_H/2 + 30);
+                }
 
-                M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2+54, 90, 15, 0);
-                M5.Lcd.drawFloat(data.heading, 5, TOUCH_W - 50, TOUCH_H/2 + 60);
-                vTaskDelay(25 / portTICK_PERIOD_MS);
+                if(data.data_content & navi::data_navi_content::HEADING) {
+                    M5.Lcd.fillRect(TOUCH_W - 90, TOUCH_H/2+54, 90, 15, 0);
+                    LcdDisplay.drawFloat(data.heading, 5, TOUCH_W - 50, TOUCH_H/2 + 60);
+                }
             }
 
-            vTaskDelay(500 / portTICK_PERIOD_MS);
+            vTaskDelay(update_delay / portTICK_PERIOD_MS);
         }
     }
 

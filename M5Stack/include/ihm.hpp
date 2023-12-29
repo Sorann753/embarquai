@@ -29,11 +29,39 @@ namespace ihm{
 
     //l'énumération des différents écrans possibles
     enum screens{
-
+        NONE,
         HOME,
         CONFIG,
         SET_ID_BATEAU,
         SET_ID_COURSE
+    };
+
+
+
+    /* un warper autour du lcd du M5Stack pour le rendre thread safe */
+    class M5LCDGuard {
+    public:
+
+        M5LCDGuard();
+        static void init();
+        static void destroy();
+
+        //on empêche la copie ou le move de cette classe
+        M5LCDGuard(M5LCDGuard&&) = delete;
+        M5LCDGuard(const M5LCDGuard&) = delete;
+        M5LCDGuard& operator=(M5LCDGuard&&) = delete;
+        M5LCDGuard& operator=(const M5LCDGuard&) = delete;
+
+        ~M5LCDGuard();
+
+        M5Display& getLcd();
+
+    private:
+        static pthread_mutex_t lcdMutex;
+        static pthread_mutex_t counterMutex;
+        static bool isInit;
+        static size_t nbInstances;
+        M5Display& M5Lcd;
     };
 
 

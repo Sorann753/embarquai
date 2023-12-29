@@ -70,9 +70,9 @@ void setup() {
     lora::init();
     ihm::init();
 
-    //damare des taches FreeRTOS
-    xTaskCreate(loop_led, "BLINKING", 2048, NULL, 1, NULL);
-    xTaskCreate(send_with_lora, "SEND LORA", 4096, NULL, 3, NULL);
+    //demarre des taches FreeRTOS
+    xTaskCreate(loop_led, "BLINKING", 1300, NULL, 1, NULL);
+    xTaskCreate(send_with_lora, "SEND LORA", 4096, NULL, 5, NULL);
 }
 
 static uint64_t loop_counter = 0;
